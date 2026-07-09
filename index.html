@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>เกมเรียงคำมหัศจรรย์</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#FF6FA5; --yellow:#FFD166; --blue:#4EC5F1; --green:#7ED957;
+    --purple:#B48CFF; --orange:#FF9A5A; --bg1:#FFF6E9; --bg2:#E8F7FF;
+    --ink:#4A3B32;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    font-family:'Mali','TH Sarabun New',sans-serif;
+    background: radial-gradient(circle at 20% 10%, var(--bg2), var(--bg1) 60%);
+    overflow-x:hidden; color:var(--ink);
+    -webkit-user-select:none; user-select:none;
+  }
+  .screen{ display:none; min-height:100vh; padding:16px; flex-direction:column; align-items:center; }
+  .screen.active{ display:flex; }
+
+  h1{ font-size:clamp(28px,6vw,44px); color:var(--pink); text-shadow:2px 2px 0 #fff, 4px 4px 0 rgba(0,0,0,0.08); margin:8px 0; text-align:center; }
+  h2{ font-size:clamp(20px,4vw,28px); margin:6px 0 14px; text-align:center; }
+
+  .bigbtn{
+    font-family:inherit; font-weight:700; font-size:20px; color:#fff;
+    background:var(--pink); border:none; border-radius:20px;
+    padding:14px 28px; box-shadow:0 6px 0 rgba(0,0,0,0.15);
+    cursor:pointer; transition:transform .08s;
+  }
+  .bigbtn:active{ transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,0.15); }
+
+  /* ---- Mascot select ---- */
+  .mascot-row{ display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin:20px 0; }
+  .mascot-opt{
+    font-size:56px; background:#fff; border-radius:24px; padding:14px 18px;
+    border:5px solid transparent; cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,0.1);
+    transition:transform .12s;
+  }
+  .mascot-opt:hover{ transform:scale(1.08); }
+  .mascot-opt.selected{ border-color:var(--green); background:#EBFFEA; }
+
+  /* ---- Word grid ---- */
+  .topbar{ width:100%; max-width:720px; display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .score-pill{ background:#fff; border-radius:30px; padding:8px 16px; font-weight:700; font-size:18px; box-shadow:0 4px 0 rgba(0,0,0,0.08); }
+  .mascot-badge{ font-size:34px; }
+
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(88px,1fr));
+    gap:12px; width:100%; max-width:760px; margin-top:10px;
+  }
+  .word-card{
+    background:#fff; border-radius:18px; padding:10px 6px 8px; text-align:center;
+    cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,0.10); border:4px solid var(--card-color,#fff);
+    transition:transform .1s;
+    position:relative;
+  }
+  .word-card:hover{ transform:translateY(-3px) scale(1.03); }
+  .word-card .emoji{ font-size:38px; display:block; }
+  .word-card .label{ font-size:14px; font-weight:700; margin-top:2px; }
+  .word-card .star{ position:absolute; top:-10px; right:-6px; font-size:20px; }
+
+  .cat-title{ width:100%; max-width:760px; font-size:18px; font-weight:800; margin:14px 0 4px; color:var(--purple); }
+
+  /* ---- Game screen ---- */
+  .game-wrap{ width:100%; max-width:640px; display:flex; flex-direction:column; align-items:center; }
+  .mascot-big{ font-size:64px; margin-bottom:4px; }
+  .speech{ background:#fff; border-radius:16px; padding:8px 16px; font-weight:700; font-size:18px; min-height:28px; box-shadow:0 3px 0 rgba(0,0,0,0.08); margin-bottom:10px; text-align:center;}
+  .prompt-emoji{
+    font-size:clamp(70px,18vw,110px); background:#fff; border-radius:32px; padding:14px 30px;
+    box-shadow:0 8px 0 rgba(0,0,0,0.1); margin-bottom:16px;
+  }
+  .listen-btn{ background:var(--blue); margin-bottom:14px; }
+
+  .slots{ display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap; justify-content:center; }
+  .slot{
+    width:58px; height:64px; background:#fff; border:3px dashed #ccc; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:30px; font-weight:800;
+  }
+  .slot.filled{ border-style:solid; border-color:var(--green); background:#EBFFEA; }
+
+  .tiles{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:18px; }
+  .tile{
+    width:58px; height:64px; font-size:30px; font-weight:800; color:var(--ink);
+    background:var(--yellow); border:none; border-radius:14px; cursor:pointer;
+    box-shadow:0 5px 0 rgba(0,0,0,0.15); transition:transform .08s;
+  }
+  .tile:active{ transform:translateY(4px); box-shadow:0 1px 0 rgba(0,0,0,0.15); }
+  .tile.used{ visibility:hidden; }
+
+  .controls-row{ display:flex; gap:10px; margin-top:6px; flex-wrap:wrap; justify-content:center; }
+  .back-btn{ background:#B0B0B0; }
+  .clear-btn{ background:var(--orange); }
+
+  /* Confetti */
+  .confetti{ position:fixed; top:-20px; width:10px; height:16px; border-radius:3px; z-index:999; }
+
+  @keyframes fall{
+    to{ transform:translateY(110vh) rotate(360deg); opacity:0.9; }
+  }
+  @keyframes pop{
+    0%{ transform:scale(0.6); opacity:0;} 60%{ transform:scale(1.15);} 100%{ transform:scale(1); opacity:1;}
+  }
+  .pop-in{ animation:pop .35s ease-out; }
+
+  @keyframes shake{
+    10%,90%{ transform:translateX(-4px);} 20%,80%{ transform:translateX(6px);}
+    30%,50%,70%{ transform:translateX(-8px);} 40%,60%{ transform:translateX(8px);}
+  }
+  .shake{ animation:shake .5s; }
+
+  footer{ margin-top:auto; padding-top:18px; font-size:12px; color:#999; text-align:center; }
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: mascot select -->
+<div class="screen active" id="screen-mascot">
+  <h1>🎈 เกมเรียงคำมหัศจรรย์ 🎈</h1>
+  <h2>หนูอยากให้เพื่อนตัวไหนไปเล่นด้วยกันจ๊ะ?</h2>
+  <div class="mascot-row" id="mascotRow"></div>
+  <button class="bigbtn" id="startBtn" style="margin-top:10px;">เริ่มเล่นกันเลย! 🚀</button>
+</div>
+
+<!-- SCREEN 2: word grid -->
+<div class="screen" id="screen-grid">
+  <div class="topbar">
+    <div class="mascot-badge" id="gridMascot"></div>
+    <h1 style="font-size:26px; margin:0;">เลือกคำที่อยากเล่น</h1>
+    <div class="score-pill">⭐ <span id="scoreCount">0</span>/20</div>
+  </div>
+  <div id="gridContainer" style="width:100%; max-width:760px;"></div>
+</div>
+
+<!-- SCREEN 3: game -->
+<div class="screen" id="screen-game">
+  <div class="topbar">
+    <button class="bigbtn back-btn" id="backBtn">⬅ กลับ</button>
+    <div class="score-pill">⭐ <span id="scoreCountGame">0</span>/20</div>
+  </div>
+  <div class="game-wrap">
+    <div class="mascot-big" id="gameMascot"></div>
+    <div class="speech" id="speechBubble">เรียงตัวอักษรให้ถูกนะจ๊ะ!</div>
+    <div class="prompt-emoji pop-in" id="promptEmoji"></div>
+    <button class="bigbtn listen-btn" id="listenBtn">🔊 ฟังคำนี้</button>
+    <div class="slots" id="slots"></div>
+    <div class="tiles" id="tiles"></div>
+    <div class="controls-row">
+      <button class="bigbtn clear-btn" id="clearBtn">↺ เริ่มใหม่</button>
+    </div>
+  </div>
+</div>
+
+<footer>ทำด้วยความรักสำหรับนักอ่านตัวน้อย 💛</footer>
+
+<script>
+/* ---------------- DATA ---------------- */
+const WORDS = [
+  {word:"หมา",   emoji:"🐶", cat:"สัตว์",   color:"#FFD166"},
+  {word:"แมว",   emoji:"🐱", cat:"สัตว์",   color:"#FFD166"},
+  {word:"หมู",   emoji:"🐷", cat:"สัตว์",   color:"#FFD166"},
+  {word:"วัว",   emoji:"🐮", cat:"สัตว์",   color:"#FFD166"},
+  {word:"ปลา",   emoji:"🐟", cat:"สัตว์",   color:"#FFD166"},
+  {word:"ม้า",   emoji:"🐴", cat:"สัตว์",   color:"#FFD166"},
+  {word:"ไก่",   emoji:"🐔", cat:"สัตว์",   color:"#FFD166"},
+  {word:"เต่า",  emoji:"🐢", cat:"สัตว์",   color:"#FFD166"},
+  {word:"ลิง",   emoji:"🐒", cat:"สัตว์",   color:"#FFD166"},
+  {word:"เป็ด",  emoji:"🦆", cat:"สัตว์",   color:"#FFD166"},
+  {word:"หนู",   emoji:"🐭", cat:"สัตว์",   color:"#FFD166"},
+  {word:"ส้ม",   emoji:"🍊", cat:"ผลไม้",  color:"#7ED957"},
+  {word:"มะนาว", emoji:"🍋", cat:"ผลไม้",  color:"#7ED957"},
+  {word:"แตงโม", emoji:"🍉", cat:"ผลไม้",  color:"#7ED957"},
+  {word:"กล้วย", emoji:"🍌", cat:"ผลไม้",  color:"#7ED957"},
+  {word:"บ้าน",  emoji:"🏠", cat:"สิ่งของ", color:"#4EC5F1"},
+  {word:"ดาว",   emoji:"⭐", cat:"สิ่งของ", color:"#4EC5F1"},
+  {word:"ร่ม",   emoji:"☂️", cat:"สิ่งของ", color:"#4EC5F1"},
+  {word:"แก้ว",  emoji:"🥛", cat:"สิ่งของ", color:"#4EC5F1"},
+  {word:"ดินสอ", emoji:"✏️", cat:"สิ่งของ", color:"#4EC5F1"}
+];
+const MASCOTS = ["🐰","🐻","🐱","🐼"];
+const COMBINING = new Set([0x0E31,0x0E34,0x0E35,0x0E36,0x0E37,0x0E38,0x0E39,0x0E47,0x0E48,0x0E49,0x0E4A,0x0E4B]);
+
+let chosenMascot = MASCOTS[0];
+let completed = new Set();
+let currentIdx = null;
+let answerSlots = [];   // characters placed so far
+let tileState = [];     // {char, used}
+let audioCtx = null;
+
+/* ---------------- INIT ---------------- */
+function init(){
+  const mRow = document.getElementById('mascotRow');
+  MASCOTS.forEach((m,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'mascot-opt' + (i===0 ? ' selected' : '');
+    btn.textContent = m;
+    btn.onclick = ()=>{
+      document.querySelectorAll('.mascot-opt').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      chosenMascot = m;
+      playTone(440,0.08);
+    };
+    mRow.appendChild(btn);
+  });
+
+  document.getElementById('startBtn').onclick = ()=>{
+    document.getElementById('gridMascot').textContent = chosenMascot;
+    showScreen('screen-grid');
+    buildGrid();
+  };
+  document.getElementById('backBtn').onclick = ()=> { showScreen('screen-grid'); buildGrid(); };
+  document.getElementById('clearBtn').onclick = resetTilesToBank;
+  document.getElementById('listenBtn').onclick = speakWord;
+
+  buildGrid();
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ---------------- GRID SCREEN ---------------- */
+function buildGrid(){
+  const container = document.getElementById('gridContainer');
+  container.innerHTML = '';
+  document.getElementById('scoreCount').textContent = completed.size;
+  document.getElementById('scoreCountGame').textContent = completed.size;
+
+  const cats = [...new Set(WORDS.map(w=>w.cat))];
+  cats.forEach(cat=>{
+    const title = document.createElement('div');
+    title.className = 'cat-title';
+    title.textContent = catLabel(cat);
+    container.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    WORDS.forEach((w,idx)=>{
+      if(w.cat !== cat) return;
+      const card = document.createElement('div');
+      card.className = 'word-card';
+      card.style.setProperty('--card-color', w.color);
+      card.innerHTML = `<span class="emoji">${w.emoji}</span><span class="label">${w.word}</span>` +
+        (completed.has(idx) ? '<span class="star">⭐</span>' : '');
+      card.onclick = ()=> startGame(idx);
+      grid.appendChild(card);
+    });
+    container.appendChild(grid);
+  });
+}
+function catLabel(cat){
+  if(cat==='สัตว์') return '🐾 หมวดสัตว์';
+  if(cat==='ผลไม้') return '🍎 หมวดผลไม้';
+  return '🧸 หมวดสิ่งของ';
+}
+
+/* ---------------- GAME SCREEN ---------------- */
+function startGame(idx){
+  currentIdx = idx;
+  const w = WORDS[idx];
+  document.getElementById('gameMascot').textContent = chosenMascot;
+  document.getElementById('promptEmoji').textContent = w.emoji;
+  document.getElementById('speechBubble').textContent = 'เรียงตัวอักษรให้ถูกนะจ๊ะ!';
+  document.getElementById('scoreCountGame').textContent = completed.size;
+  showScreen('screen-game');
+  setupPuzzle(w.word);
+}
+
+function setupPuzzle(word){
+  const chars = Array.from(word);
+  answerSlots = new Array(chars.length).fill(null);
+  let shuffled;
+  do {
+    shuffled = shuffle(chars.slice());
+  } while(chars.length > 1 && shuffled.join('') === chars.join(''));
+  tileState = shuffled.map(c=>({char:c, used:false}));
+  renderSlots(chars.length);
+  renderTiles();
+}
+
+function displayChar(c){
+  const code = c.codePointAt(0);
+  return COMBINING.has(code) ? ('◌' + c) : c;
+}
+
+function renderSlots(len){
+  const slotsEl = document.getElementById('slots');
+  slotsEl.innerHTML = '';
+  for(let i=0;i<len;i++){
+    const s = document.createElement('div');
+    s.className = 'slot';
+    s.id = 'slot-'+i;
+    slotsEl.appendChild(s);
+  }
+}
+
+function renderTiles(){
+  const tilesEl = document.getElementById('tiles');
+  tilesEl.innerHTML = '';
+  tileState.forEach((t,i)=>{
+    const b = document.createElement('button');
+    b.className = 'tile' + (t.used ? ' used' : '');
+    b.textContent = displayChar(t.char);
+    b.onclick = ()=> placeTile(i);
+    tilesEl.appendChild(b);
+  });
+}
+
+function placeTile(tileIdx){
+  if(tileState[tileIdx].used) return;
+  const nextEmpty = answerSlots.findIndex(s=>s===null);
+  if(nextEmpty === -1) return;
+  answerSlots[nextEmpty] = tileState[tileIdx].char;
+  tileState[tileIdx].used = true;
+  const slotEl = document.getElementById('slot-'+nextEmpty);
+  slotEl.textContent = displayChar(tileState[tileIdx].char);
+  slotEl.classList.add('filled');
+  renderTiles();
+  playTone(520,0.06);
+
+  if(answerSlots.every(s=>s!==null)){
+    setTimeout(checkAnswer, 250);
+  }
+}
+
+function resetTilesToBank(){
+  const w = WORDS[currentIdx];
+  setupPuzzle(w.word);
+  document.getElementById('speechBubble').textContent = 'เรียงตัวอักษรให้ถูกนะจ๊ะ!';
+}
+
+function checkAnswer(){
+  const w = WORDS[currentIdx];
+  const guess = answerSlots.join('');
+  if(guess === w.word){
+    completed.add(currentIdx);
+    document.getElementById('speechBubble').textContent = 'เก่งมาก! ถูกต้องจ้า 🎉';
+    document.getElementById('scoreCountGame').textContent = completed.size;
+    playSuccess();
+    launchConfetti();
+    setTimeout(()=>{ showScreen('screen-grid'); buildGrid(); }, 1600);
+  } else {
+    document.getElementById('speechBubble').textContent = 'ยังไม่ถูกนะ ลองอีกครั้ง! 💪';
+    const slotsEl = document.getElementById('slots');
+    slotsEl.classList.add('shake');
+    playTone(180,0.25);
+    setTimeout(()=>{
+      slotsEl.classList.remove('shake');
+      resetTilesToBank();
+    }, 700);
+  }
+}
+
+/* ---------------- AUDIO ---------------- */
+function ensureAudio(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){}
+  }
+}
+function playTone(freq, dur){
+  ensureAudio();
+  if(!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.frequency.value = freq;
+  osc.type = 'sine';
+  gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + dur);
+}
+function playSuccess(){
+  [523,659,784].forEach((f,i)=> setTimeout(()=>playTone(f,0.25), i*150));
+}
+function speakWord(){
+  const w = WORDS[currentIdx];
+  try{
+    const u = new SpeechSynthesisUtterance(w.word);
+    u.lang = 'th-TH';
+    u.rate = 0.8;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }catch(e){}
+  playTone(400,0.05);
+}
+
+/* ---------------- CONFETTI ---------------- */
+function launchConfetti(){
+  const colors = ['#FF6FA5','#FFD166','#4EC5F1','#7ED957','#B48CFF','#FF9A5A'];
+  for(let i=0;i<40;i++){
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random()*100 + 'vw';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.animation = `fall ${1+Math.random()*1.2}s linear forwards`;
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 2500);
+  }
+}
+
+/* ---------------- UTIL ---------------- */
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+init();
+</script>
+</body>
+</html>
