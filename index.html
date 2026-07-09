@@ -61,7 +61,6 @@
   }
   .word-card:hover{ transform:translateY(-3px) scale(1.03); }
   .word-card .emoji{ font-size:38px; display:block; }
-  .word-card .label{ font-size:14px; font-weight:700; margin-top:2px; }
   .word-card .star{ position:absolute; top:-10px; right:-6px; font-size:20px; }
 
   .cat-title{ width:100%; max-width:760px; font-size:18px; font-weight:800; margin:14px 0 4px; color:var(--purple); }
@@ -246,7 +245,7 @@ function buildGrid(){
       const card = document.createElement('div');
       card.className = 'word-card';
       card.style.setProperty('--card-color', w.color);
-      card.innerHTML = `<span class="emoji">${w.emoji}</span><span class="label">${w.word}</span>` +
+      card.innerHTML = `<span class="emoji">${w.emoji}</span>` +
         (completed.has(idx) ? '<span class="star">⭐</span>' : '');
       card.onclick = ()=> startGame(idx);
       grid.appendChild(card);
