@@ -10,7 +10,7 @@
   :root{
     --pink:#FF6FA5; --yellow:#FFD166; --blue:#4EC5F1; --green:#7ED957;
     --purple:#B48CFF; --orange:#FF9A5A; --bg1:#FFF6E9; --bg2:#E8F7FF;
-    --ink:#4A3B32; --coral:#FF8B94; --teal:#4ED8C0;
+    --ink:#4A3B32; --coral:#FF8B94; --teal:#4ED8C0; --gold:#FFB84D;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; font-family:inherit;}
   html,body{
@@ -202,7 +202,18 @@ const WORDS = [
   {word:"สายรุ้ง", emoji:"🌈", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
   {word:"ภูเขา",   emoji:"⛰️", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
   {word:"ทะเล",   emoji:"🌊", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
-  {word:"ไข่ไก่",   emoji:"🥚", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true}
+  {word:"ไข่ไก่",   emoji:"🥚", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
+
+  {word:"พ่อ",     emoji:"👨", cat:"ครอบครัว", color:"#FFB84D"},
+  {word:"แม่",     emoji:"👩", cat:"ครอบครัว", color:"#FFB84D"},
+  {word:"ปู่",      emoji:"👴", cat:"ครอบครัว", color:"#FFB84D"},
+  {word:"ย่า",     emoji:"👵", cat:"ครอบครัว", color:"#FFB84D"},
+  {word:"ลุง",     emoji:"🧔", cat:"ครอบครัว", color:"#FFB84D"},
+  {word:"ป้า",     emoji:"👩‍🦳", cat:"ครอบครัว", color:"#FFB84D"},
+  {word:"หลาน",   emoji:"👶", cat:"ครอบครัว", color:"#FFB84D"},
+  {word:"พี่ชาย",   emoji:"👦", cat:"ครอบครัว", color:"#FFB84D", hint:true},
+  {word:"น้องสาว", emoji:"👧", cat:"ครอบครัว", color:"#FFB84D", hint:true},
+  {word:"ครอบครัว", emoji:"👪", cat:"ครอบครัว", color:"#FFB84D", hint:true}
 ];
 const MASCOTS = ["🐰","🐻","🐱","🐼"];
 const COMBINING = new Set([0x0E31,0x0E34,0x0E35,0x0E36,0x0E37,0x0E38,0x0E39,0x0E47,0x0E48,0x0E49,0x0E4A,0x0E4B]);
@@ -283,7 +294,8 @@ function catLabel(cat){
   if(cat==='ผลไม้') return '🍎 หมวดผลไม้';
   if(cat==='สิ่งของ') return '🧸 หมวดสิ่งของ';
   if(cat==='มานีมานะ') return '📖 หมวดมานีมานะ';
-  return '📚 หมวดดรุณศึกษา';
+  if(cat==='ดรุณศึกษา') return '📚 หมวดดรุณศึกษา';
+  return '❤️ หมวดครอบครัว';
 }
 
 /* ---------------- GAME SCREEN ---------------- */
