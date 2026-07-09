@@ -286,7 +286,7 @@ function setupPuzzle(word){
 
 function displayChar(c){
   const code = c.codePointAt(0);
-  return COMBINING.has(code) ? ('◌' + c) : c;
+  return COMBINING.has(code) ? ('o' + c) : c;
 }
 
 function renderSlots(len){
