@@ -10,7 +10,7 @@
   :root{
     --pink:#FF6FA5; --yellow:#FFD166; --blue:#4EC5F1; --green:#7ED957;
     --purple:#B48CFF; --orange:#FF9A5A; --bg1:#FFF6E9; --bg2:#E8F7FF;
-    --ink:#4A3B32;
+    --ink:#4A3B32; --coral:#FF8B94; --teal:#4ED8C0;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; font-family:inherit;}
   html,body{
@@ -82,6 +82,7 @@
     font-size:30px; font-weight:800;
   }
   .slot.filled{ border-style:solid; border-color:var(--green); background:#EBFFEA; }
+  .slot.hint{ border-style:solid; border-color:var(--purple); background:#F3EEFF; color:var(--purple); }
 
   .tiles{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:18px; }
   .tile{
@@ -131,7 +132,7 @@
   <div class="topbar">
     <div class="mascot-badge" id="gridMascot"></div>
     <h1 style="font-size:26px; margin:0;">เลือกคำที่อยากเล่น</h1>
-    <div class="score-pill">⭐ <span id="scoreCount">0</span>/20</div>
+    <div class="score-pill">⭐ <span id="scoreCount">0</span>/<span id="totalCount1">20</span></div>
   </div>
   <div id="gridContainer" style="width:100%; max-width:760px;"></div>
 </div>
@@ -140,7 +141,7 @@
 <div class="screen" id="screen-game">
   <div class="topbar">
     <button class="bigbtn back-btn" id="backBtn">⬅ กลับ</button>
-    <div class="score-pill">⭐ <span id="scoreCountGame">0</span>/20</div>
+    <div class="score-pill">⭐ <span id="scoreCountGame">0</span>/<span id="totalCount2">20</span></div>
   </div>
   <div class="game-wrap">
     <div class="mascot-big" id="gameMascot"></div>
@@ -179,7 +180,29 @@ const WORDS = [
   {word:"ดาว",   emoji:"⭐", cat:"สิ่งของ", color:"#4EC5F1"},
   {word:"ร่ม",   emoji:"☂️", cat:"สิ่งของ", color:"#4EC5F1"},
   {word:"แก้ว",  emoji:"🥛", cat:"สิ่งของ", color:"#4EC5F1"},
-  {word:"ดินสอ", emoji:"✏️", cat:"สิ่งของ", color:"#4EC5F1"}
+  {word:"ดินสอ", emoji:"✏️", cat:"สิ่งของ", color:"#4EC5F1"},
+
+  {word:"กระต่าย", emoji:"🐰", cat:"มานีมานะ", color:"#FF8B94", hint:true},
+  {word:"ผีเสื้อ",  emoji:"🦋", cat:"มานีมานะ", color:"#FF8B94", hint:true},
+  {word:"เก้าอี้",  emoji:"🪑", cat:"มานีมานะ", color:"#FF8B94", hint:true},
+  {word:"กระเป๋า", emoji:"🎒", cat:"มานีมานะ", color:"#FF8B94", hint:true},
+  {word:"รองเท้า", emoji:"👞", cat:"มานีมานะ", color:"#FF8B94", hint:true},
+  {word:"แว่นตา",  emoji:"👓", cat:"มานีมานะ", color:"#FF8B94", hint:true},
+  {word:"ดอกไม้",  emoji:"🌸", cat:"มานีมานะ", color:"#FF8B94", hint:true},
+  {word:"ต้นไม้",  emoji:"🌳", cat:"มานีมานะ", color:"#FF8B94", hint:true},
+  {word:"เรือใบ",  emoji:"⛵", cat:"มานีมานะ", color:"#FF8B94", hint:true},
+  {word:"ลูกโป่ง", emoji:"🎈", cat:"มานีมานะ", color:"#FF8B94", hint:true},
+
+  {word:"มะพร้าว", emoji:"🥥", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
+  {word:"แตงกวา", emoji:"🥒", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
+  {word:"นกฮูก",   emoji:"🦉", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
+  {word:"กระรอก",  emoji:"🐿️", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
+  {word:"ปลาวาฬ",  emoji:"🐋", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
+  {word:"หอยทาก", emoji:"🐌", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
+  {word:"สายรุ้ง", emoji:"🌈", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
+  {word:"ภูเขา",   emoji:"⛰️", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
+  {word:"ทะเล",   emoji:"🌊", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true},
+  {word:"ไข่ไก่",   emoji:"🥚", cat:"ดรุณศึกษา", color:"#4ED8C0", hint:true}
 ];
 const MASCOTS = ["🐰","🐻","🐱","🐼"];
 const COMBINING = new Set([0x0E31,0x0E34,0x0E35,0x0E36,0x0E37,0x0E38,0x0E39,0x0E47,0x0E48,0x0E49,0x0E4A,0x0E4B]);
@@ -193,6 +216,8 @@ let audioCtx = null;
 
 /* ---------------- INIT ---------------- */
 function init(){
+  document.getElementById('totalCount1').textContent = WORDS.length;
+  document.getElementById('totalCount2').textContent = WORDS.length;
   const mRow = document.getElementById('mascotRow');
   MASCOTS.forEach((m,i)=>{
     const btn = document.createElement('button');
@@ -256,7 +281,9 @@ function buildGrid(){
 function catLabel(cat){
   if(cat==='สัตว์') return '🐾 หมวดสัตว์';
   if(cat==='ผลไม้') return '🍎 หมวดผลไม้';
-  return '🧸 หมวดสิ่งของ';
+  if(cat==='สิ่งของ') return '🧸 หมวดสิ่งของ';
+  if(cat==='มานีมานะ') return '📖 หมวดมานีมานะ';
+  return '📚 หมวดดรุณศึกษา';
 }
 
 /* ---------------- GAME SCREEN ---------------- */
@@ -268,18 +295,27 @@ function startGame(idx){
   document.getElementById('speechBubble').textContent = 'เรียงตัวอักษรให้ถูกนะจ๊ะ!';
   document.getElementById('scoreCountGame').textContent = completed.size;
   showScreen('screen-game');
-  setupPuzzle(w.word);
+  setupPuzzle(w.word, w.hint);
 }
 
-function setupPuzzle(word){
+function setupPuzzle(word, useHint){
   const chars = Array.from(word);
   answerSlots = new Array(chars.length).fill(null);
+
+  let hintPositions = [];
+  if(useHint && chars.length > 3){
+    const hintCount = Math.min(3, chars.length - 1);
+    hintPositions = shuffle(chars.map((c,i)=>i)).slice(0, hintCount).sort((a,b)=>a-b);
+    hintPositions.forEach(pos=>{ answerSlots[pos] = chars[pos]; });
+  }
+
+  const remaining = chars.filter((c,i)=>!hintPositions.includes(i));
   let shuffled;
   do {
-    shuffled = shuffle(chars.slice());
-  } while(chars.length > 1 && shuffled.join('') === chars.join(''));
+    shuffled = shuffle(remaining.slice());
+  } while(remaining.length > 1 && shuffled.join('') === remaining.join(''));
   tileState = shuffled.map(c=>({char:c, used:false}));
-  renderSlots(chars.length);
+  renderSlots(chars, hintPositions);
   renderTiles();
 }
 
@@ -288,15 +324,19 @@ function displayChar(c){
   return COMBINING.has(code) ? ('-' + c) : c;
 }
 
-function renderSlots(len){
+function renderSlots(chars, hintPositions){
   const slotsEl = document.getElementById('slots');
   slotsEl.innerHTML = '';
-  for(let i=0;i<len;i++){
+  chars.forEach((c,i)=>{
     const s = document.createElement('div');
     s.className = 'slot';
     s.id = 'slot-'+i;
+    if(hintPositions.includes(i)){
+      s.classList.add('hint');
+      s.textContent = displayChar(c);
+    }
     slotsEl.appendChild(s);
-  }
+  });
 }
 
 function renderTiles(){
@@ -330,7 +370,7 @@ function placeTile(tileIdx){
 
 function resetTilesToBank(){
   const w = WORDS[currentIdx];
-  setupPuzzle(w.word);
+  setupPuzzle(w.word, w.hint);
   document.getElementById('speechBubble').textContent = 'เรียงตัวอักษรให้ถูกนะจ๊ะ!';
 }
 
