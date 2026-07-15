@@ -132,6 +132,21 @@
   .spot-card.is-wrong{ border-color:#FF6B6B; background:#FFECEC; }
   .spot-done{ font-size:clamp(24px,5vw,34px); font-weight:800; text-align:center; margin:20px 0; }
 
+  /* ---- Spot-the-difference game ---- */
+  .diff-wrap{ display:flex; gap:16px; flex-wrap:wrap; justify-content:center; width:100%; max-width:760px; }
+  .diff-panel{
+    position:relative; width:min(320px,44vw); aspect-ratio:1/1;
+    background:linear-gradient(180deg,#BEE7FF 0%,#EAFBE0 65%,#CFF0B0 100%);
+    border-radius:24px; border:4px solid #fff; box-shadow:0 6px 0 rgba(0,0,0,0.1);
+    overflow:hidden;
+  }
+  .diff-item{ position:absolute; line-height:1; user-select:none; }
+  .diff-hotspot{
+    position:absolute; width:15%; height:15%; min-width:34px; min-height:34px;
+    border-radius:50%; cursor:pointer; transform:translate(-50%,-50%);
+  }
+  .diff-hotspot.found{ background:rgba(126,217,87,0.4); border:3px solid var(--green); }
+
   footer{ margin-top:auto; padding-top:18px; font-size:12px; color:#999; text-align:center; }
 </style>
 </head>
@@ -144,6 +159,7 @@
   <div class="mascot-row" id="mascotRow"></div>
   <button class="bigbtn" id="startBtn" style="margin-top:10px;">เริ่มเล่นกันเลย! 🚀</button>
   <button class="bigbtn" id="spotStartBtn" style="margin-top:10px; background:var(--teal);">🔍 เกมจับผิด ทายภาพ</button>
+  <button class="bigbtn" id="diffStartBtn" style="margin-top:10px; background:var(--purple);">🕵️ จับผิดภาพ 2 รูป</button>
 </div>
 
 <!-- SCREEN 2: word grid -->
@@ -185,6 +201,24 @@
     <div class="mascot-big" id="spotMascot"></div>
     <div class="speech" id="spotSpeech">คำนี้คือรูปไหนนะ?</div>
     <div id="spotBody"></div>
+  </div>
+</div>
+
+<!-- SCREEN 5: spot-the-difference game -->
+<div class="screen" id="screen-diff">
+  <div class="topbar">
+    <button class="bigbtn back-btn" id="diffBackBtn">⬅ กลับ</button>
+    <div class="score-pill">🔎 <span id="diffFound">0</span>/7</div>
+  </div>
+  <div class="game-wrap">
+    <div class="speech" id="diffSpeech">หาจุดที่ไม่เหมือนกัน 7 จุดนะจ๊ะ!</div>
+    <div class="diff-wrap" id="diffWrap">
+      <div class="diff-panel" id="diffPanelLeft"></div>
+      <div class="diff-panel" id="diffPanelRight"></div>
+    </div>
+    <div class="controls-row" style="margin-top:16px;">
+      <button class="bigbtn clear-btn" id="diffReplayBtn">🔁 เล่นใหม่</button>
+    </div>
   </div>
 </div>
 
@@ -305,6 +339,10 @@ function init(){
 
   document.getElementById('spotStartBtn').onclick = startSpotGame;
   document.getElementById('spotBackBtn').onclick = ()=> showScreen('screen-mascot');
+
+  document.getElementById('diffStartBtn').onclick = startDiffGame;
+  document.getElementById('diffBackBtn').onclick = ()=> showScreen('screen-mascot');
+  document.getElementById('diffReplayBtn').onclick = startDiffGame;
 
   buildGrid();
 }
@@ -540,6 +578,115 @@ function finishSpotGame(){
   `;
   document.getElementById('spotReplayBtn').onclick = startSpotGame;
   launchConfetti();
+}
+
+/* ---------------- SPOT-THE-DIFFERENCE GAME ---------------- */
+const SPD_ITEMS = [
+  {id:"sun",       emoji:"☀️", x:12, y:12, size:42},
+  {id:"cloud1",    emoji:"☁️", x:72, y:10, size:34},
+  {id:"cloud2",    emoji:"☁️", x:45, y:16, size:26},
+  {id:"tree1",     emoji:"🌳", x:10, y:58, size:48},
+  {id:"tree2",     emoji:"🌳", x:90, y:60, size:44},
+  {id:"house",     emoji:"🏠", x:50, y:42, size:54},
+  {id:"sunflower", emoji:"🌻", x:26, y:76, size:32},
+  {id:"flower2",   emoji:"🌸", x:66, y:82, size:28},
+  {id:"butterfly", emoji:"🦋", x:36, y:34, size:26},
+  {id:"bird",      emoji:"🐦", x:78, y:26, size:24},
+  {id:"ball",      emoji:"⚽", x:55, y:90, size:30},
+  {id:"balloon",   emoji:"🎈", x:16, y:30, size:32},
+  {id:"rabbit",    emoji:"🐰", x:40, y:92, size:32},
+  {id:"kite",      emoji:"🪁", x:85, y:16, size:30},
+  {id:"grass",     emoji:"🌱", x:60, y:62, size:22}
+];
+const SPD_DIFFS = [
+  {id:"d1", type:"swap",   itemId:"ball",     newEmoji:"🏀"},
+  {id:"d2", type:"remove", itemId:"bird"},
+  {id:"d3", type:"add",    item:{id:"butterfly2", emoji:"🦋", x:60, y:48, size:24}},
+  {id:"d4", type:"swap",   itemId:"flower2",  newEmoji:"🌼"},
+  {id:"d5", type:"resize", itemId:"tree2",    newSize:64},
+  {id:"d6", type:"rotate", itemId:"kite",     newRotate:25},
+  {id:"d7", type:"move",   itemId:"balloon",  newX:26, newY:20}
+];
+let diffFound = new Set();
+
+function startDiffGame(){
+  diffFound = new Set();
+  document.getElementById('diffFound').textContent = 0;
+  document.getElementById('diffSpeech').textContent = 'หาจุดที่ไม่เหมือนกัน 7 จุดนะจ๊ะ!';
+  renderDiffScene();
+  showScreen('screen-diff');
+}
+
+function cloneSpdItems(){ return SPD_ITEMS.map(it=>({...it})); }
+
+function renderDiffScene(){
+  const leftItems = cloneSpdItems();
+  let rightItems = cloneSpdItems();
+
+  SPD_DIFFS.forEach(diff=>{
+    if(diff.type==='swap'){
+      const it = rightItems.find(i=>i.id===diff.itemId);
+      if(it) it.emoji = diff.newEmoji;
+    } else if(diff.type==='remove'){
+      rightItems = rightItems.filter(i=>i.id!==diff.itemId);
+    } else if(diff.type==='add'){
+      rightItems.push({...diff.item});
+    } else if(diff.type==='resize'){
+      const it = rightItems.find(i=>i.id===diff.itemId);
+      if(it) it.size = diff.newSize;
+    } else if(diff.type==='rotate'){
+      const it = rightItems.find(i=>i.id===diff.itemId);
+      if(it) it.rotate = diff.newRotate;
+    } else if(diff.type==='move'){
+      const it = rightItems.find(i=>i.id===diff.itemId);
+      if(it){ it.x = diff.newX; it.y = diff.newY; }
+    }
+  });
+
+  buildDiffPanel('diffPanelLeft', leftItems, 'left');
+  buildDiffPanel('diffPanelRight', rightItems, 'right');
+}
+
+function buildDiffPanel(panelId, items, side){
+  const panel = document.getElementById(panelId);
+  panel.innerHTML = '';
+  items.forEach(it=>{
+    const span = document.createElement('span');
+    span.className = 'diff-item';
+    span.style.left = it.x + '%';
+    span.style.top = it.y + '%';
+    span.style.fontSize = (it.size||32) + 'px';
+    span.style.transform = `translate(-50%,-50%) rotate(${it.rotate||0}deg)`;
+    span.textContent = it.emoji;
+    panel.appendChild(span);
+  });
+
+  SPD_DIFFS.forEach(diff=>{
+    const base = SPD_ITEMS.find(i=>i.id===diff.itemId) || diff.item;
+    let pos = {x: base.x, y: base.y};
+    if(diff.type==='move' && side==='right'){ pos = {x:diff.newX, y:diff.newY}; }
+    const hot = document.createElement('div');
+    hot.className = 'diff-hotspot' + (diffFound.has(diff.id) ? ' found' : '');
+    hot.style.left = pos.x + '%';
+    hot.style.top = pos.y + '%';
+    hot.onclick = ()=> clickDiff(diff.id);
+    panel.appendChild(hot);
+  });
+}
+
+function clickDiff(diffId){
+  if(diffFound.has(diffId)) return;
+  diffFound.add(diffId);
+  document.getElementById('diffFound').textContent = diffFound.size;
+  playTone(520,0.08);
+  renderDiffScene();
+
+  if(diffFound.size === SPD_DIFFS.length){
+    document.getElementById('diffSpeech').textContent = 'เก่งมาก! เจอครบ 7 จุดแล้ว 🎉';
+    setTimeout(()=>{ playSuccess(); launchConfetti(); }, 150);
+  } else {
+    document.getElementById('diffSpeech').textContent = `เจอแล้ว ${diffFound.size} จุด ลองหาต่อนะ!`;
+  }
 }
 
 /* ---------------- AUDIO ---------------- */
