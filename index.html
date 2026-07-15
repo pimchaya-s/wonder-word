@@ -140,7 +140,12 @@
     border-radius:24px; border:4px solid #fff; box-shadow:0 6px 0 rgba(0,0,0,0.1);
     overflow:hidden;
   }
-  .diff-item{ position:absolute; line-height:1; user-select:none; }
+  .diff-item{ position:absolute; transform:translate(-50%,-50%); text-align:center; line-height:1.1; user-select:none; }
+  .diff-item-label{
+    display:block; font-size:11px; font-weight:800; color:var(--ink);
+    background:rgba(255,255,255,0.85); border-radius:6px; padding:1px 4px;
+    margin-top:2px; white-space:nowrap;
+  }
   .diff-hotspot{
     position:absolute; width:15%; height:15%; min-width:34px; min-height:34px;
     border-radius:50%; cursor:pointer; transform:translate(-50%,-50%);
@@ -159,7 +164,8 @@
   <div class="mascot-row" id="mascotRow"></div>
   <button class="bigbtn" id="startBtn" style="margin-top:10px;">เริ่มเล่นกันเลย! 🚀</button>
   <button class="bigbtn" id="spotStartBtn" style="margin-top:10px; background:var(--teal);">🔍 เกมจับผิด ทายภาพ</button>
-  <button class="bigbtn" id="diffStartBtn" style="margin-top:10px; background:var(--purple);">🕵️ จับผิดภาพ 2 รูป</button>
+  <button class="bigbtn" id="diffStartBtn1" style="margin-top:10px; background:var(--purple);">🕵️ จับผิดภาพ ด่าน 1 (ง่าย)</button>
+  <button class="bigbtn" id="diffStartBtn2" style="margin-top:10px; background:#8B6FCE;">🕵️ จับผิดภาพ ด่าน 2 (ยาก)</button>
 </div>
 
 <!-- SCREEN 2: word grid -->
@@ -208,15 +214,17 @@
 <div class="screen" id="screen-diff">
   <div class="topbar">
     <button class="bigbtn back-btn" id="diffBackBtn">⬅ กลับ</button>
-    <div class="score-pill">🔎 <span id="diffFound">0</span>/7</div>
+    <div class="score-pill">🔎 <span id="diffFound">0</span>/<span id="diffTotal">7</span></div>
   </div>
   <div class="game-wrap">
+    <h2 id="diffGameLabel" style="margin:2px 0;">จับผิดภาพ ด่านที่ 1</h2>
+    <div style="font-weight:700; color:var(--purple); margin-bottom:8px;">ด่านย่อยที่ <span id="diffLevelNum">1</span>/10 · <span id="diffCatLabel"></span></div>
     <div class="speech" id="diffSpeech">หาจุดที่ไม่เหมือนกัน 7 จุดนะจ๊ะ!</div>
     <div class="diff-wrap" id="diffWrap">
       <div class="diff-panel" id="diffPanelLeft"></div>
       <div class="diff-panel" id="diffPanelRight"></div>
     </div>
-    <div class="controls-row" style="margin-top:16px;">
+    <div class="controls-row" id="diffControls" style="margin-top:16px; display:none;">
       <button class="bigbtn clear-btn" id="diffReplayBtn">🔁 เล่นใหม่</button>
     </div>
   </div>
@@ -340,9 +348,10 @@ function init(){
   document.getElementById('spotStartBtn').onclick = startSpotGame;
   document.getElementById('spotBackBtn').onclick = ()=> showScreen('screen-mascot');
 
-  document.getElementById('diffStartBtn').onclick = startDiffGame;
+  document.getElementById('diffStartBtn1').onclick = ()=> startDiffGame(1);
+  document.getElementById('diffStartBtn2').onclick = ()=> startDiffGame(2);
   document.getElementById('diffBackBtn').onclick = ()=> showScreen('screen-mascot');
-  document.getElementById('diffReplayBtn').onclick = startDiffGame;
+  document.getElementById('diffReplayBtn').onclick = ()=> startDiffGame(diffGameNum);
 
   buildGrid();
 }
@@ -580,50 +589,128 @@ function finishSpotGame(){
   launchConfetti();
 }
 
-/* ---------------- SPOT-THE-DIFFERENCE GAME ---------------- */
-const SPD_ITEMS = [
-  {id:"sun",       emoji:"☀️", x:12, y:12, size:42},
-  {id:"cloud1",    emoji:"☁️", x:72, y:10, size:34},
-  {id:"cloud2",    emoji:"☁️", x:45, y:16, size:26},
-  {id:"tree1",     emoji:"🌳", x:10, y:58, size:48},
-  {id:"tree2",     emoji:"🌳", x:90, y:60, size:44},
-  {id:"house",     emoji:"🏠", x:50, y:42, size:54},
-  {id:"sunflower", emoji:"🌻", x:26, y:76, size:32},
-  {id:"flower2",   emoji:"🌸", x:66, y:82, size:28},
-  {id:"butterfly", emoji:"🦋", x:36, y:34, size:26},
-  {id:"bird",      emoji:"🐦", x:78, y:26, size:24},
-  {id:"ball",      emoji:"⚽", x:55, y:90, size:30},
-  {id:"balloon",   emoji:"🎈", x:16, y:30, size:32},
-  {id:"rabbit",    emoji:"🐰", x:40, y:92, size:32},
-  {id:"kite",      emoji:"🪁", x:85, y:16, size:30},
-  {id:"grass",     emoji:"🌱", x:60, y:62, size:22}
+/* ---------------- SPOT-THE-DIFFERENCE GAME (leveled, 50-word vocabulary) ---------------- */
+/* 5 หมวดใหญ่ x 10 คำ จากหนังสือดรุณศึกษาปฐมวัย/มานีมานะ */
+const DIFF_WORDS = {
+  animals:     [{w:"กระต่าย",e:"🐰"},{w:"ผีเสื้อ",e:"🦋"},{w:"แมงมุม",e:"🕷️"},{w:"นกฮูก",e:"🦉"},{w:"จระเข้",e:"🐊"},
+                {w:"กระรอก",e:"🐿️"},{w:"ม้าลาย",e:"🦓"},{w:"นกยูง",e:"🦚"},{w:"ปูเสฉวน",e:"🦀"},{w:"ตะขาบ",e:"🐛"}],
+  fruitveg:    [{w:"มะละกอ",e:"🍈"},{w:"มะม่วง",e:"🥭"},{w:"มะพร้าว",e:"🥥"},{w:"สับปะรด",e:"🍍"},{w:"แตงโม",e:"🍉"},
+                {w:"กล้วยหอม",e:"🍌"},{w:"ฟักทอง",e:"🎃"},{w:"มะเขือ",e:"🍆"},{w:"ตะไคร้",e:"🌿"},{w:"กระเทียม",e:"🧄"}],
+  household:   [{w:"กระเป๋า",e:"🎒"},{w:"ดินสอ",e:"✏️"},{w:"ยางลบ",e:"🧽"},{w:"กระดาน",e:"📋"},{w:"หนังสือ",e:"📖"},
+                {w:"นาฬิกา",e:"🕐"},{w:"โทรทัศน์",e:"📺"},{w:"ตู้เย็น",e:"🧊"},{w:"แปรงสีฟัน",e:"🪥"},{w:"กระจกเงา",e:"🪞"}],
+  vehicnature: [{w:"เครื่องบิน",e:"✈️"},{w:"รถไฟ",e:"🚂"},{w:"จักรยาน",e:"🚲"},{w:"เรือใบ",e:"⛵"},{w:"รถเมล์",e:"🚌"},
+                {w:"ดวงอาทิตย์",e:"☀️"},{w:"ดวงจันทร์",e:"🌙"},{w:"สายรุ้ง",e:"🌈"},{w:"ดอกไม้",e:"🌸"},{w:"ต้นไม้",e:"🌳"}],
+  foodetc:     [{w:"ขนมปัง",e:"🍞"},{w:"ไอศกรีม",e:"🍦"},{w:"ไข่เจียว",e:"🍳"},{w:"ข้าวผัด",e:"🍛"},{w:"ก๋วยเตี๋ยว",e:"🍜"},
+                {w:"ส้มตำ",e:"🥗"},{w:"รองเท้า",e:"👞"},{w:"กางเกง",e:"👖"},{w:"เจ้าโต",e:"🐕"},{w:"สีดา",e:"🐈"}]
+};
+const DIFF_CATS = ['animals','fruitveg','household','vehicnature','foodetc'];
+const DIFF_CAT_LABELS = {
+  animals:"🐾 หมวดสัตว์", fruitveg:"🍎 หมวดผลไม้-ผัก", household:"🎒 หมวดของใช้",
+  vehicnature:"✈️ หมวดยานพาหนะ-ธรรมชาติ", foodetc:"🍜 หมวดอาหาร-เครื่องแต่งกาย"
+};
+const DIFF_FILLERS = [
+  {id:"f1", emoji:"☁️", alt:"🌥️"}, {id:"f2", emoji:"☁️", alt:"🌥️"},
+  {id:"f3", emoji:"🌱", alt:"🍀"}, {id:"f4", emoji:"🌱", alt:"🍀"},
+  {id:"f5", emoji:"⭐", alt:"🌟"}, {id:"f6", emoji:"🪨", alt:null}
 ];
-const SPD_DIFFS = [
-  {id:"d1", type:"swap",   itemId:"ball",     newEmoji:"🏀"},
-  {id:"d2", type:"remove", itemId:"bird"},
-  {id:"d3", type:"add",    item:{id:"butterfly2", emoji:"🦋", x:60, y:48, size:24}},
-  {id:"d4", type:"swap",   itemId:"flower2",  newEmoji:"🌼"},
-  {id:"d5", type:"resize", itemId:"tree2",    newSize:64},
-  {id:"d6", type:"rotate", itemId:"kite",     newRotate:25},
-  {id:"d7", type:"move",   itemId:"balloon",  newX:26, newY:20}
+/* 16 ตำแหน่ง (%): 6 ของตกแต่ง + 9 คำศัพท์หลัก + 1 คำสำรอง (ใช้กับ diff แบบ "เพิ่มรูป") */
+const DIFF_POSITIONS = [
+  {x:10,y:10},{x:30,y:8},{x:50,y:12},{x:70,y:9},{x:90,y:14},
+  {x:15,y:32},{x:38,y:30},{x:62,y:33},{x:85,y:30},
+  {x:12,y:55},{x:35,y:58},{x:58,y:55},{x:82,y:58},
+  {x:20,y:82},{x:45,y:85},{x:70,y:82}
 ];
-let diffFound = new Set();
 
-function startDiffGame(){
-  diffFound = new Set();
-  document.getElementById('diffFound').textContent = 0;
-  document.getElementById('diffSpeech').textContent = 'หาจุดที่ไม่เหมือนกัน 7 จุดนะจ๊ะ!';
-  renderDiffScene();
-  showScreen('screen-diff');
+let diffGameNum = 1;
+let diffLevelIdx = 0;
+let diffBaseItems = [];
+let diffLevelDiffs = [];
+let diffFoundSet = new Set();
+
+function diffLevelCount(gameNum, levelIdx){
+  const startVal = gameNum === 1 ? 4 : 8;
+  const endVal = gameNum === 1 ? 8 : 12;
+  return Math.round(startVal + (endVal - startVal) * levelIdx / 9);
 }
 
-function cloneSpdItems(){ return SPD_ITEMS.map(it=>({...it})); }
+function startDiffGame(gameNum){
+  diffGameNum = gameNum;
+  diffLevelIdx = 0;
+  document.getElementById('diffControls').style.display = 'none';
+  document.getElementById('diffWrap').style.display = 'flex';
+  showScreen('screen-diff');
+  loadDiffLevel();
+}
 
-function renderDiffScene(){
-  const leftItems = cloneSpdItems();
-  let rightItems = cloneSpdItems();
+function loadDiffLevel(){
+  if(diffLevelIdx >= 10){
+    finishDiffGame();
+    return;
+  }
+  diffFoundSet = new Set();
+  document.getElementById('diffGameLabel').textContent = 'จับผิดภาพ ด่านที่ ' + diffGameNum;
+  document.getElementById('diffLevelNum').textContent = diffLevelIdx + 1;
 
-  SPD_DIFFS.forEach(diff=>{
+  const diffCount = diffLevelCount(diffGameNum, diffLevelIdx);
+  const catKey = DIFF_CATS[diffLevelIdx % DIFF_CATS.length];
+  document.getElementById('diffCatLabel').textContent = DIFF_CAT_LABELS[catKey];
+  document.getElementById('diffSpeech').textContent = `หาจุดที่ไม่เหมือนกัน ${diffCount} จุดนะจ๊ะ!`;
+
+  const words = DIFF_WORDS[catKey];
+  const baseWords = words.slice(0,9).map((w,i)=>({id:'w'+i, emoji:w.e, label:w.w, alt:null}));
+  const reservedWord = {id:'wR', emoji:words[9].e, label:words[9].w, alt:null};
+  const fillerItems = DIFF_FILLERS.map(f=>({id:f.id, emoji:f.emoji, label:null, alt:f.alt}));
+
+  const positions = shuffle(DIFF_POSITIONS.slice());
+  const allSlots = fillerItems.concat(baseWords);
+  allSlots.forEach((it,i)=>{
+    it.x = positions[i].x; it.y = positions[i].y;
+    it.size = it.label ? 34 : 30; it.rotate = 0;
+  });
+  reservedWord.x = positions[allSlots.length].x;
+  reservedWord.y = positions[allSlots.length].y;
+  reservedWord.size = 34; reservedWord.rotate = 0;
+
+  diffBaseItems = allSlots;
+  diffLevelDiffs = buildDiffsForLevel(allSlots, reservedWord, diffCount);
+  document.getElementById('diffTotal').textContent = diffLevelDiffs.length;
+  document.getElementById('diffFound').textContent = 0;
+  renderDiffLevelScene();
+}
+
+function buildDiffsForLevel(baseItems, reservedItem, diffCount){
+  const eligible = shuffle(baseItems.slice());
+  const typeCycle = ['move','resize','rotate','remove'];
+  const nonAddCount = Math.max(0, diffCount - 1);
+  const diffs = [];
+  for(let i=0; i<nonAddCount; i++){
+    const item = eligible[i];
+    let type = typeCycle[i % typeCycle.length];
+    if(item.alt && i % 4 === 3) type = 'swap';
+    diffs.push(makeDiffFromItem(item, type, i));
+  }
+  diffs.push({id:'add-'+reservedItem.id, type:'add', item:reservedItem});
+  return diffs;
+}
+
+function makeDiffFromItem(item, type, i){
+  const id = 'd'+i+'-'+item.id;
+  if(type==='swap') return {id, type, itemId:item.id, newEmoji:item.alt};
+  if(type==='resize') return {id, type, itemId:item.id, newSize:Math.round((item.size||30)*1.6)};
+  if(type==='rotate') return {id, type, itemId:item.id, newRotate:25};
+  if(type==='move'){
+    const nx = Math.min(92, Math.max(8, item.x + (i%2===0 ? -18 : 18)));
+    const ny = Math.min(92, Math.max(8, item.y + (i%2===0 ? 14 : -14)));
+    return {id, type, itemId:item.id, newX:nx, newY:ny};
+  }
+  return {id, type:'remove', itemId:item.id};
+}
+
+function renderDiffLevelScene(){
+  const leftItems = diffBaseItems.map(it=>({...it}));
+  let rightItems = diffBaseItems.map(it=>({...it}));
+
+  diffLevelDiffs.forEach(diff=>{
     if(diff.type==='swap'){
       const it = rightItems.find(i=>i.id===diff.itemId);
       if(it) it.emoji = diff.newEmoji;
@@ -643,50 +730,59 @@ function renderDiffScene(){
     }
   });
 
-  buildDiffPanel('diffPanelLeft', leftItems, 'left');
-  buildDiffPanel('diffPanelRight', rightItems, 'right');
+  buildDiffLevelPanel('diffPanelLeft', leftItems, 'left');
+  buildDiffLevelPanel('diffPanelRight', rightItems, 'right');
 }
 
-function buildDiffPanel(panelId, items, side){
+function buildDiffLevelPanel(panelId, items, side){
   const panel = document.getElementById(panelId);
   panel.innerHTML = '';
   items.forEach(it=>{
-    const span = document.createElement('span');
-    span.className = 'diff-item';
-    span.style.left = it.x + '%';
-    span.style.top = it.y + '%';
-    span.style.fontSize = (it.size||32) + 'px';
-    span.style.transform = `translate(-50%,-50%) rotate(${it.rotate||0}deg)`;
-    span.textContent = it.emoji;
-    panel.appendChild(span);
+    const wrap = document.createElement('div');
+    wrap.className = 'diff-item';
+    wrap.style.left = it.x + '%';
+    wrap.style.top = it.y + '%';
+    wrap.innerHTML = `<span style="font-size:${it.size||30}px; display:block; transform:rotate(${it.rotate||0}deg);">${it.emoji}</span>` +
+      (it.label ? `<span class="diff-item-label">${it.label}</span>` : '');
+    panel.appendChild(wrap);
   });
 
-  SPD_DIFFS.forEach(diff=>{
-    const base = SPD_ITEMS.find(i=>i.id===diff.itemId) || diff.item;
+  diffLevelDiffs.forEach(diff=>{
+    const base = diffBaseItems.find(i=>i.id===diff.itemId) || diff.item;
     let pos = {x: base.x, y: base.y};
     if(diff.type==='move' && side==='right'){ pos = {x:diff.newX, y:diff.newY}; }
     const hot = document.createElement('div');
-    hot.className = 'diff-hotspot' + (diffFound.has(diff.id) ? ' found' : '');
+    hot.className = 'diff-hotspot' + (diffFoundSet.has(diff.id) ? ' found' : '');
     hot.style.left = pos.x + '%';
     hot.style.top = pos.y + '%';
-    hot.onclick = ()=> clickDiff(diff.id);
+    hot.onclick = ()=> clickDiffLevel(diff.id);
     panel.appendChild(hot);
   });
 }
 
-function clickDiff(diffId){
-  if(diffFound.has(diffId)) return;
-  diffFound.add(diffId);
-  document.getElementById('diffFound').textContent = diffFound.size;
+function clickDiffLevel(diffId){
+  if(diffFoundSet.has(diffId)) return;
+  diffFoundSet.add(diffId);
+  document.getElementById('diffFound').textContent = diffFoundSet.size;
   playTone(520,0.08);
-  renderDiffScene();
+  renderDiffLevelScene();
 
-  if(diffFound.size === SPD_DIFFS.length){
-    document.getElementById('diffSpeech').textContent = 'เก่งมาก! เจอครบ 7 จุดแล้ว 🎉';
-    setTimeout(()=>{ playSuccess(); launchConfetti(); }, 150);
+  if(diffFoundSet.size === diffLevelDiffs.length){
+    document.getElementById('diffSpeech').textContent = 'เก่งมาก! เจอครบแล้ว 🎉';
+    playSuccess();
+    launchConfetti();
+    setTimeout(()=>{ diffLevelIdx++; loadDiffLevel(); }, 1600);
   } else {
-    document.getElementById('diffSpeech').textContent = `เจอแล้ว ${diffFound.size} จุด ลองหาต่อนะ!`;
+    document.getElementById('diffSpeech').textContent = `เจอแล้ว ${diffFoundSet.size}/${diffLevelDiffs.length} จุด ลองหาต่อนะ!`;
   }
+}
+
+function finishDiffGame(){
+  document.getElementById('diffSpeech').textContent = 'จบเกมจับผิดภาพด่านที่ ' + diffGameNum + ' แล้วจ้า เก่งมากเลย! 🌟';
+  document.getElementById('diffWrap').style.display = 'none';
+  document.getElementById('diffCatLabel').textContent = '';
+  document.getElementById('diffControls').style.display = 'flex';
+  launchConfetti();
 }
 
 /* ---------------- AUDIO ---------------- */
