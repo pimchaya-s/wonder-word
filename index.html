@@ -177,8 +177,24 @@
 
   /* ---- Princess clock game ---- */
   .clock-wrap{ width:100%; max-width:520px; display:flex; flex-direction:column; align-items:center; }
-  .princess-clock{ width:min(300px,80vw); margin:4px 0 8px; filter:drop-shadow(0 6px 8px rgba(180,140,255,0.3)); }
+  .clock-scene{ position:relative; width:min(300px,80vw); margin:4px 0 8px; padding-bottom:26px; }
+  .princess-clock{ width:100%; display:block; position:relative; z-index:2; filter:drop-shadow(0 4px 5px rgba(180,140,255,0.25)); }
   .princess-clock .hand{ transform-box:fill-box; transform-origin:center bottom; transition:transform .5s cubic-bezier(.34,1.56,.64,1); }
+  .sky-body{
+    position:absolute; left:50%; top:18%; transform:translate(-50%,-50%);
+    font-size:clamp(30px,9vw,42px); line-height:1; z-index:3; pointer-events:none;
+    display:flex; align-items:center; justify-content:center; border-radius:50%;
+    width:1.7em; height:1.7em;
+    transition:left .7s ease, top .7s ease; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  }
+  .sky-body.sun{ background:radial-gradient(circle, rgba(255,214,90,0.65), rgba(255,214,90,0) 68%); }
+  .sky-body.moon{ background:radial-gradient(circle, rgba(230,235,255,0.55), rgba(230,235,255,0) 68%); }
+  .ground-shadow{
+    position:absolute; left:50%; bottom:6px; width:55%; height:22px;
+    transform:translateX(-50%); border-radius:50%; z-index:0; pointer-events:none;
+    background:radial-gradient(ellipse at center, rgba(40,25,60,0.35), rgba(40,25,60,0) 70%);
+    transition:left .7s ease, width .7s ease, opacity .7s ease;
+  }
   .clock-choices{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; width:100%; max-width:440px; margin-top:6px; }
   .clock-choice{
     font-family:inherit; font-weight:800; font-size:clamp(15px,3.6vw,20px); line-height:1.35; color:var(--ink);
@@ -308,6 +324,9 @@
   </div>
   <div class="clock-wrap">
     <div class="clock-progress">ด่านที่ <span id="clockLevelNum">1</span>/15</div>
+    <div class="clock-scene" id="clockScene">
+    <span class="sky-body" id="skyBody">☀️</span>
+    <div class="ground-shadow" id="groundShadow"></div>
     <svg class="princess-clock" id="princessClock" viewBox="0 0 300 360" xmlns="http://www.w3.org/2000/svg">
       <!-- long blue skirt -->
       <path d="M150 108 C 66 120, 18 300, 26 352 L 274 352 C 282 300, 234 120, 150 108 Z" fill="#6FBEF7"/>
@@ -355,6 +374,7 @@
       <rect id="hourHand" class="hand" x="146" y="196" width="8" height="42" rx="4" fill="#FF6FA5"/>
       <circle cx="150" cy="238" r="7" fill="#FFD84D" stroke="#E7B21E" stroke-width="2"/>
     </svg>
+    </div>
     <div class="speech" id="clockSpeech">นาฬิกาบอกเวลาอะไรจ๊ะ?</div>
     <button class="bigbtn listen-btn" id="clockListenBtn" style="margin-bottom:12px;">🔊 ฟังอีกครั้ง</button>
     <div class="clock-choices" id="clockChoices"></div>
@@ -990,15 +1010,13 @@ function clockLevelMinutes(level){
   return [0,5,10,15,20,25,30,35,40,45,50,55];
 }
 
-const HOUR_WORDS = ['','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'];
-
-/* word form of a "special" time (o'clock / quarter / half); null otherwise */
+/* word form of a "special" time (o'clock / quarter / half); null otherwise.
+   Uses digits (3 o'clock, quarter past 3) so kids learn the numerals first. */
 function enWordForm(h, m){
-  const hw = HOUR_WORDS[h];
-  const nh = HOUR_WORDS[h === 12 ? 1 : h+1];
-  if(m === 0) return hw + " o'clock";
-  if(m === 15) return 'quarter past ' + hw;
-  if(m === 30) return 'half past ' + hw;
+  const nh = h === 12 ? 1 : h+1;
+  if(m === 0) return h + " o'clock";
+  if(m === 15) return 'quarter past ' + h;
+  if(m === 30) return 'half past ' + h;
   if(m === 45) return 'quarter to ' + nh;
   return null;
 }
@@ -1046,19 +1064,58 @@ function loadClockLevel(){
   clockTarget = {h, m};
   clockPeriod = clockLang === 'en' ? (Math.random() < 0.5 ? 'AM' : 'PM') : '';
 
-  // night-time (PM 🌙) → dark starry background so kids feel day vs night
-  document.getElementById('screen-clock').classList.toggle('night', clockPeriod === 'PM');
+  // position the sun/moon + shadow for this time, and set day/night background
+  const isDay = updateClockSky(h, m);
 
   document.getElementById('clockLevelNum').textContent = clockLevel;
   document.getElementById('clockScore').textContent = clockScore;
   document.getElementById('clockSpeech').textContent =
     clockLang === 'th' ? 'นาฬิกาบอกเวลาอะไรจ๊ะ?'
-                       : 'What time is it? ' + (clockPeriod === 'AM' ? '☀️' : '🌙');
+                       : 'What time is it? ' + (isDay ? '☀️' : '🌙');
   document.getElementById('clockListenBtn').textContent =
     clockLang === 'th' ? '🔊 ฟังอีกครั้ง' : '🔊 Listen again';
 
   setClockHands(h, m);
   renderClockChoices();
+}
+
+/* place the sun/moon along the sky and cast the ground shadow to match the time */
+function updateClockSky(h, m){
+  const period = clockPeriod;   // '', 'AM', 'PM'
+  let hour24, isDay, prog, body;
+  if(period === ''){            // Thai: no AM/PM → treat as daytime, sun by the hour
+    isDay = true;
+    prog = ((h % 12)) / 12;     // 12→0 (left), 6→0.5, ... sweeps across the sky
+    body = '☀️';
+  } else {
+    hour24 = period === 'AM' ? (h === 12 ? 0 : h) : (h === 12 ? 12 : h + 12);
+    isDay = hour24 >= 6 && hour24 < 18;
+    if(isDay){ prog = (hour24 - 6) / 12; body = '☀️'; }
+    else { prog = ((hour24 + 6) % 24) / 12; body = '🌙'; }  // 18:00→0 … 06:00→1
+  }
+
+  const leftPct = 12 + prog * 76;                 // east (left) → west (right)
+  const elevation = Math.sin(prog * Math.PI);     // 0 at horizon, 1 at peak (noon/midnight)
+  const topPct = 42 - elevation * 34;             // higher in the sky at the peak
+
+  const skyEl = document.getElementById('skyBody');
+  skyEl.textContent = body;
+  skyEl.classList.toggle('sun', isDay);
+  skyEl.classList.toggle('moon', !isDay);
+  skyEl.style.left = leftPct + '%';
+  skyEl.style.top = topPct + '%';
+
+  // shadow falls opposite the sun, and grows long when the sun sits low
+  const sunFrac = leftPct / 100;
+  const shadowShift = (0.5 - sunFrac) * 55;       // sun on left → shadow to the right
+  const shadowWidth = 42 + (1 - elevation) * 46;
+  const shadowEl = document.getElementById('groundShadow');
+  shadowEl.style.left = (50 + shadowShift) + '%';
+  shadowEl.style.width = shadowWidth + '%';
+  shadowEl.style.opacity = isDay ? 0.30 : 0.14;
+
+  document.getElementById('screen-clock').classList.toggle('night', !isDay);
+  return isDay;
 }
 
 function setClockHands(h, m){
