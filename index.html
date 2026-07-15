@@ -297,32 +297,34 @@
       <!-- bodice -->
       <path d="M150 96 C 118 96, 106 118, 106 142 L 194 142 C 194 118, 182 96, 150 96 Z" fill="#4FA9EE"/>
       <path d="M150 96 L150 142" stroke="#3E96DA" stroke-width="2" opacity="0.5"/>
-      <!-- golden braid over left shoulder -->
+      <!-- golden braid over left shoulder (big) -->
       <g fill="#F5C542" stroke="#E0A92E" stroke-width="1.5">
-        <circle cx="120" cy="80" r="10"/>
-        <circle cx="114" cy="96" r="9"/>
-        <circle cx="110" cy="112" r="8"/>
-        <circle cx="107" cy="127" r="7"/>
-        <circle cx="105" cy="140" r="6"/>
+        <circle cx="108" cy="86" r="14"/>
+        <circle cx="101" cy="107" r="13"/>
+        <circle cx="97" cy="127" r="11"/>
+        <circle cx="94" cy="145" r="9"/>
+        <circle cx="92" cy="160" r="7"/>
       </g>
-      <path d="M104 146 L100 156 L110 156 Z" fill="#E0A92E"/>
-      <!-- hair top -->
-      <path d="M120 58 C 120 30, 180 30, 180 58 C 186 46, 178 34, 150 32 C 122 34, 114 46, 120 58 Z" fill="#F5C542"/>
-      <!-- head / white skin -->
-      <circle cx="150" cy="62" r="29" fill="#FFF2E7"/>
+      <path d="M91 166 L85 180 L99 180 Z" fill="#E0A92E"/>
+      <!-- hair back puff -->
+      <path d="M108 50 C 104 8, 196 8, 192 50 C 202 30, 188 12, 150 10 C 112 12, 98 30, 108 50 Z" fill="#F5C542"/>
+      <!-- head / white skin (BIG) -->
+      <circle cx="150" cy="56" r="42" fill="#FFF2E7"/>
       <!-- hair fringe -->
-      <path d="M122 54 C 128 40, 172 40, 178 54 C 170 48, 158 46, 150 46 C 142 46, 130 48, 122 54 Z" fill="#F5C542"/>
+      <path d="M110 44 C 120 20, 180 20, 190 44 C 178 34, 164 30, 150 30 C 136 30, 122 34, 110 44 Z" fill="#F5C542"/>
       <!-- crown -->
-      <path d="M128 34 L134 22 L150 32 L166 22 L172 34 Z" fill="#FFD84D" stroke="#E7B21E" stroke-width="1.5"/>
-      <circle cx="134" cy="22" r="3" fill="#FF6FA5"/>
-      <circle cx="150" cy="30" r="3" fill="#4EC5F1"/>
-      <circle cx="166" cy="22" r="3" fill="#7ED957"/>
+      <path d="M122 24 L131 4 L150 20 L169 4 L178 24 Z" fill="#FFD84D" stroke="#E7B21E" stroke-width="1.8"/>
+      <circle cx="131" cy="5" r="4" fill="#FF6FA5"/>
+      <circle cx="150" cy="16" r="4" fill="#4EC5F1"/>
+      <circle cx="169" cy="5" r="4" fill="#7ED957"/>
       <!-- face -->
-      <circle cx="140" cy="62" r="3" fill="#4A3B32"/>
-      <circle cx="160" cy="62" r="3" fill="#4A3B32"/>
-      <circle cx="131" cy="70" r="4.5" fill="#FFB6C1" opacity="0.7"/>
-      <circle cx="169" cy="70" r="4.5" fill="#FFB6C1" opacity="0.7"/>
-      <path d="M143 73 Q150 79 157 73" stroke="#E0787F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <circle cx="135" cy="58" r="4.5" fill="#4A3B32"/>
+      <circle cx="165" cy="58" r="4.5" fill="#4A3B32"/>
+      <circle cx="137" cy="56.5" r="1.6" fill="#fff"/>
+      <circle cx="167" cy="56.5" r="1.6" fill="#fff"/>
+      <circle cx="121" cy="70" r="6.5" fill="#FFB6C1" opacity="0.7"/>
+      <circle cx="179" cy="70" r="6.5" fill="#FFB6C1" opacity="0.7"/>
+      <path d="M139 72 Q150 83 161 72" stroke="#E0787F" stroke-width="3.2" fill="none" stroke-linecap="round"/>
       <!-- clock face -->
       <circle cx="150" cy="238" r="84" fill="#FFFDF7" stroke="#FFD84D" stroke-width="9"/>
       <circle cx="150" cy="238" r="84" fill="none" stroke="#E7B21E" stroke-width="2"/>
@@ -465,7 +467,7 @@ function init(){
   document.getElementById('clockThaiBtn').onclick = ()=> startClockGame('th');
   document.getElementById('clockEngBtn').onclick = ()=> startClockGame('en');
   document.getElementById('clockBackBtn').onclick = ()=> showScreen('screen-mascot');
-  document.getElementById('clockListenBtn').onclick = ()=> speakLang(timeSpeech(clockTarget.h, clockTarget.m, clockLang), clockLang);
+  document.getElementById('clockListenBtn').onclick = ()=> speakLang(timeSpeech(clockTarget.h, clockTarget.m, clockLang, clockPeriod), clockLang);
 
   buildGrid();
 }
@@ -937,6 +939,7 @@ let clockLang = 'th';
 let clockLevel = 1;
 let clockScore = 0;
 let clockTarget = {h:3, m:0};
+let clockPeriod = '';   // English only: 'AM' / 'PM'
 
 function setupClockNumbers(){
   const g = document.getElementById('clockNumbers');
@@ -967,24 +970,34 @@ function clockLevelMinutes(level){
   return [0,5,10,15,20,25,30,35,40,45,50,55];
 }
 
-function timeLabel(h, m, lang){
+function timeLabel(h, m, lang, period){
   const mm = m < 10 ? '0'+m : ''+m;
   if(lang === 'th'){
     if(m === 0) return h + ' นาฬิกา';
-    if(m === 30) return h + ' นาฬิกาครึ่ง';
-    return h + ' นาฬิกา ' + m + ' นาที';
+    return h + ' นาฬิกา ' + m + ' นาที';   // ครึ่งชั่วโมง = "X นาฬิกา 30 นาที"
   }
-  if(m === 0) return h + " o'clock";
-  if(m === 15) return 'quarter past ' + h;
-  if(m === 30) return 'half past ' + h;
-  if(m === 45) return 'quarter to ' + (h === 12 ? 1 : h+1);
-  return h + ':' + mm;
+  let base;
+  if(m === 0) base = h + " o'clock";
+  else if(m === 15) base = 'quarter past ' + h;
+  else if(m === 30) base = 'half past ' + h;
+  else if(m === 45) base = 'quarter to ' + (h === 12 ? 1 : h+1);
+  else base = h + ':' + mm;
+  return period ? base + ' ' + period : base;
 }
 
-function timeSpeech(h, m, lang){
+function timeSpeech(h, m, lang, period){
   if(lang === 'th') return timeLabel(h, m, 'th');
-  if(m === 0 || m === 15 || m === 30 || m === 45) return timeLabel(h, m, 'en');
-  return h + ' ' + m; // e.g. "3 20" → "three twenty"
+  let base;
+  if(m === 0) base = h + " o'clock";
+  else if(m === 15) base = 'quarter past ' + h;
+  else if(m === 30) base = 'half past ' + h;
+  else if(m === 45) base = 'quarter to ' + (h === 12 ? 1 : h+1);
+  else base = h + ' ' + m; // e.g. "3 20" → "three twenty"
+  return period ? base + ' ' + period : base;
+}
+
+function clockPraise(lang){
+  return lang === 'th' ? 'เยี่ยมไปเลยค่ะ' : 'Good';
 }
 
 function startClockGame(lang){
@@ -1002,11 +1015,13 @@ function loadClockLevel(){
   const h = 1 + Math.floor(Math.random()*12);
   const m = mins[Math.floor(Math.random()*mins.length)];
   clockTarget = {h, m};
+  clockPeriod = clockLang === 'en' ? (Math.random() < 0.5 ? 'AM' : 'PM') : '';
 
   document.getElementById('clockLevelNum').textContent = clockLevel;
   document.getElementById('clockScore').textContent = clockScore;
   document.getElementById('clockSpeech').textContent =
-    clockLang === 'th' ? 'นาฬิกาบอกเวลาอะไรจ๊ะ?' : 'What time is it? 🕐';
+    clockLang === 'th' ? 'นาฬิกาบอกเวลาอะไรจ๊ะ?'
+                       : 'What time is it? ' + (clockPeriod === 'AM' ? '☀️' : '🌙');
   document.getElementById('clockListenBtn').textContent =
     clockLang === 'th' ? '🔊 ฟังอีกครั้ง' : '🔊 Listen again';
 
@@ -1045,37 +1060,41 @@ function renderClockChoices(){
   options.forEach(opt=>{
     const btn = document.createElement('button');
     btn.className = 'clock-choice';
-    btn.textContent = timeLabel(opt.h, opt.m, clockLang);
+    btn.textContent = timeLabel(opt.h, opt.m, clockLang, clockPeriod);
     btn.onclick = ()=> chooseClock(opt, btn);
     box.appendChild(btn);
   });
 
   // read the time aloud when a new level appears
-  setTimeout(()=> speakLang(timeSpeech(clockTarget.h, clockTarget.m, clockLang), clockLang), 400);
+  setTimeout(()=> speakLang(timeSpeech(clockTarget.h, clockTarget.m, clockLang, clockPeriod), clockLang), 400);
 }
 
 function chooseClock(opt, btn){
   const isCorrect = opt.h === clockTarget.h && opt.m === clockTarget.m;
+  const timeText = timeSpeech(clockTarget.h, clockTarget.m, clockLang, clockPeriod);
   if(isCorrect){
     btn.classList.add('is-right');
     document.querySelectorAll('.clock-choice').forEach(b=> b.disabled = true);
     clockScore++;
     document.getElementById('clockScore').textContent = clockScore;
     document.getElementById('clockSpeech').textContent =
-      clockLang === 'th' ? 'เก่งมาก! ถูกต้องจ้า 🎉' : 'Great job! Correct 🎉';
+      clockLang === 'th' ? 'เยี่ยมไปเลยค่ะ! 🎉' : 'Good! 🎉';
     playSuccess();
-    speakLang(timeSpeech(clockTarget.h, clockTarget.m, clockLang), clockLang);
+    // say the praise word, then read the time aloud
+    speakSequence([clockPraise(clockLang), timeText], clockLang);
     launchConfetti();
     setTimeout(()=>{
       if(clockLevel >= 15){ finishClockGame(); }
       else { clockLevel++; loadClockLevel(); }
-    }, 1700);
+    }, 1900);
   } else {
     btn.classList.add('is-wrong');
     btn.disabled = true;
     playTone(180,0.25);
     document.getElementById('clockSpeech').textContent =
       clockLang === 'th' ? 'ยังไม่ถูกนะ ลองอีกครั้ง! 💪' : 'Not yet, try again! 💪';
+    // still read the correct time so the child hears it
+    speakLang(timeText, clockLang);
   }
 }
 
@@ -1119,14 +1138,24 @@ function speakText(text){
   speakLang(text, 'th');
 }
 function speakLang(text, lang){
+  speakSequence([text], lang);
+}
+function speakSequence(texts, lang){
+  if(!('speechSynthesis' in window)) return;
   try{
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = lang === 'en' ? 'en-US' : 'th-TH';
-    u.rate = lang === 'en' ? 0.85 : 0.8;
     speechSynthesis.cancel();
-    speechSynthesis.speak(u);
+    // Chrome can drop an utterance queued in the same tick as cancel();
+    // a tiny delay makes speech reliable after a click.
+    setTimeout(()=>{
+      texts.forEach(t=>{
+        const u = new SpeechSynthesisUtterance(t);
+        u.lang = lang === 'en' ? 'en-US' : 'th-TH';
+        u.rate = lang === 'en' ? 0.85 : 0.85;
+        u.pitch = 1.15;
+        speechSynthesis.speak(u);
+      });
+    }, 60);
   }catch(e){}
-  playTone(400,0.05);
 }
 
 /* ---------------- CONFETTI ---------------- */
