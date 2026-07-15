@@ -114,6 +114,24 @@
   }
   .shake{ animation:shake .5s; }
 
+  /* ---- Spot-the-picture game ---- */
+  .spot-word{
+    font-size:clamp(36px,9vw,64px); font-weight:800; color:var(--pink); background:#fff;
+    border-radius:24px; padding:14px 36px; box-shadow:0 6px 0 rgba(0,0,0,0.1);
+    margin:8px 0 26px; text-align:center;
+  }
+  .spot-row{ display:flex; gap:24px; flex-wrap:wrap; justify-content:center; }
+  .spot-card{
+    width:150px; height:170px; background:#fff; border-radius:24px; border:5px solid #eee;
+    display:flex; align-items:center; justify-content:center; font-size:80px;
+    cursor:pointer; box-shadow:0 6px 0 rgba(0,0,0,0.12); transition:transform .1s;
+  }
+  .spot-card:hover{ transform:translateY(-4px) scale(1.03); }
+  .spot-card:active{ transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,0.12); }
+  .spot-card.is-correct{ border-color:var(--green); background:#EBFFEA; }
+  .spot-card.is-wrong{ border-color:#FF6B6B; background:#FFECEC; }
+  .spot-done{ font-size:clamp(24px,5vw,34px); font-weight:800; text-align:center; margin:20px 0; }
+
   footer{ margin-top:auto; padding-top:18px; font-size:12px; color:#999; text-align:center; }
 </style>
 </head>
@@ -125,6 +143,7 @@
   <h2>หนูอยากให้เพื่อนตัวไหนไปเล่นด้วยกันจ๊ะ?</h2>
   <div class="mascot-row" id="mascotRow"></div>
   <button class="bigbtn" id="startBtn" style="margin-top:10px;">เริ่มเล่นกันเลย! 🚀</button>
+  <button class="bigbtn" id="spotStartBtn" style="margin-top:10px; background:var(--teal);">🔍 เกมจับผิด ทายภาพ</button>
 </div>
 
 <!-- SCREEN 2: word grid -->
@@ -153,6 +172,19 @@
     <div class="controls-row">
       <button class="bigbtn clear-btn" id="clearBtn">↺ เริ่มใหม่</button>
     </div>
+  </div>
+</div>
+
+<!-- SCREEN 4: spot-the-picture game -->
+<div class="screen" id="screen-spot">
+  <div class="topbar">
+    <button class="bigbtn back-btn" id="spotBackBtn">⬅ กลับ</button>
+    <div class="score-pill">🎯 <span id="spotLevelNum">1</span>/<span id="spotLevelTotal">10</span></div>
+  </div>
+  <div class="game-wrap">
+    <div class="mascot-big" id="spotMascot"></div>
+    <div class="speech" id="spotSpeech">คำนี้คือรูปไหนนะ?</div>
+    <div id="spotBody"></div>
   </div>
 </div>
 
@@ -218,12 +250,31 @@ const WORDS = [
 const MASCOTS = ["🐰","🐻","🐱","🐼"];
 const COMBINING = new Set([0x0E31,0x0E34,0x0E35,0x0E36,0x0E37,0x0E38,0x0E39,0x0E47,0x0E48,0x0E49,0x0E4A,0x0E4B]);
 
+/* สระเรียงจากง่ายไปยาก: อิ -> อี -> อึ -> อือ -> เอีย (อนุบาล3-ป.1 แบบมานีมานะ/ดรุณศึกษา) */
+const SPOT_LEVELS = [
+  {vowel:"ิ",    correct:{word:"กระดิ่ง", emoji:"🔔"}, wrong:{word:"กระเป๋า", emoji:"🎒"}},
+  {vowel:"ิ",    correct:{word:"ปิ่นโต",  emoji:"🍱"}, wrong:{word:"ตะกร้า", emoji:"🧺"}},
+  {vowel:"ี",    correct:{word:"กีต้าร์", emoji:"🎸"}, wrong:{word:"กลอง",   emoji:"🥁"}},
+  {vowel:"ี",    correct:{word:"ปีกไก่",  emoji:"🍗"}, wrong:{word:"ไข่ไก่", emoji:"🥚"}},
+  {vowel:"ึ",    correct:{word:"ตึกสูง",  emoji:"🏢"}, wrong:{word:"บ้าน",   emoji:"🏠"}},
+  {vowel:"ึ",    correct:{word:"อึ่งอ่าง",emoji:"🐸"}, wrong:{word:"อูฐ",    emoji:"🐫"}},
+  {vowel:"ือ",   correct:{word:"มือถือ",  emoji:"📱"}, wrong:{word:"โทรทัศน์",emoji:"📺"}},
+  {vowel:"ือ",   correct:{word:"หนังสือ", emoji:"📖"}, wrong:{word:"ดินสอ",  emoji:"✏️"}},
+  {vowel:"เอีย", correct:{word:"เตียงนอน",emoji:"🛏️"}, wrong:{word:"โซฟา",   emoji:"🛋️"}},
+  {vowel:"เอีย", correct:{word:"เสียงเพลง",emoji:"🎵"}, wrong:{word:"กลอง",  emoji:"🥁"}}
+];
+
 let chosenMascot = MASCOTS[0];
 let completed = new Set();
 let currentIdx = null;
 let answerSlots = [];   // characters placed so far
 let tileState = [];     // {char, used}
 let audioCtx = null;
+
+let spotOrder = [];     // level indices in play order for this session
+let spotPos = 0;
+let spotScore = 0;
+let spotCorrectSide = 'left';
 
 /* ---------------- INIT ---------------- */
 function init(){
@@ -251,6 +302,9 @@ function init(){
   document.getElementById('backBtn').onclick = ()=> { showScreen('screen-grid'); buildGrid(); };
   document.getElementById('clearBtn').onclick = resetTilesToBank;
   document.getElementById('listenBtn').onclick = speakWord;
+
+  document.getElementById('spotStartBtn').onclick = startSpotGame;
+  document.getElementById('spotBackBtn').onclick = ()=> showScreen('screen-mascot');
 
   buildGrid();
 }
@@ -408,6 +462,86 @@ function checkAnswer(){
   }
 }
 
+/* ---------------- SPOT-THE-PICTURE GAME ---------------- */
+function buildSpotOrder(){
+  const tiers = [...new Set(SPOT_LEVELS.map(l=>l.vowel))];
+  let order = [];
+  tiers.forEach(t=>{
+    const idxs = SPOT_LEVELS.map((l,i)=>i).filter(i=>SPOT_LEVELS[i].vowel===t);
+    order = order.concat(shuffle(idxs));
+  });
+  return order;
+}
+
+function startSpotGame(){
+  document.getElementById('spotMascot').textContent = chosenMascot;
+  spotOrder = buildSpotOrder();
+  spotPos = 0;
+  spotScore = 0;
+  document.getElementById('spotLevelTotal').textContent = spotOrder.length;
+  showScreen('screen-spot');
+  loadSpotLevel();
+}
+
+function loadSpotLevel(){
+  if(spotPos >= spotOrder.length){
+    finishSpotGame();
+    return;
+  }
+  document.getElementById('spotLevelNum').textContent = spotPos + 1;
+  document.getElementById('spotSpeech').textContent = 'คำนี้คือรูปไหนนะ?';
+
+  const level = SPOT_LEVELS[spotOrder[spotPos]];
+  spotCorrectSide = Math.random() < 0.5 ? 'left' : 'right';
+  const leftItem = spotCorrectSide === 'left' ? level.correct : level.wrong;
+  const rightItem = spotCorrectSide === 'right' ? level.correct : level.wrong;
+
+  const body = document.getElementById('spotBody');
+  body.innerHTML = `
+    <div class="spot-word pop-in">${level.correct.word}</div>
+    <div class="spot-row">
+      <div class="spot-card" id="spotCard-left">${leftItem.emoji}</div>
+      <div class="spot-card" id="spotCard-right">${rightItem.emoji}</div>
+    </div>
+  `;
+  document.getElementById('spotCard-left').onclick = ()=> pickSpot('left', leftItem.word);
+  document.getElementById('spotCard-right').onclick = ()=> pickSpot('right', rightItem.word);
+}
+
+function pickSpot(side, word){
+  speakText(word);
+  const cardEl = document.getElementById('spotCard-'+side);
+  if(side === spotCorrectSide){
+    spotScore++;
+    cardEl.classList.add('is-correct');
+    document.getElementById('spotSpeech').textContent = 'เก่งมาก! ถูกต้องจ้า 🎉';
+    playSuccess();
+    launchConfetti();
+    setTimeout(()=>{ spotPos++; loadSpotLevel(); }, 1400);
+  } else {
+    cardEl.classList.add('is-wrong');
+    document.getElementById('spotSpeech').textContent = 'ยังไม่ใช่ ลองดูใหม่นะ! 💪';
+    playTone(180,0.25);
+    const wrapEl = document.querySelector('#screen-spot .game-wrap');
+    wrapEl.classList.add('shake');
+    setTimeout(()=>{
+      wrapEl.classList.remove('shake');
+      cardEl.classList.remove('is-wrong');
+    }, 600);
+  }
+}
+
+function finishSpotGame(){
+  const body = document.getElementById('spotBody');
+  document.getElementById('spotSpeech').textContent = 'จบเกมแล้วจ้า เก่งมากเลย! 🌟';
+  body.innerHTML = `
+    <div class="spot-done pop-in">ทายถูก ${spotScore}/${spotOrder.length} รูป 🎉</div>
+    <button class="bigbtn" id="spotReplayBtn">🔁 เล่นอีกครั้ง</button>
+  `;
+  document.getElementById('spotReplayBtn').onclick = startSpotGame;
+  launchConfetti();
+}
+
 /* ---------------- AUDIO ---------------- */
 function ensureAudio(){
   if(!audioCtx){
@@ -431,9 +565,11 @@ function playSuccess(){
   [523,659,784].forEach((f,i)=> setTimeout(()=>playTone(f,0.25), i*150));
 }
 function speakWord(){
-  const w = WORDS[currentIdx];
+  speakText(WORDS[currentIdx].word);
+}
+function speakText(text){
   try{
-    const u = new SpeechSynthesisUtterance(w.word);
+    const u = new SpeechSynthesisUtterance(text);
     u.lang = 'th-TH';
     u.rate = 0.8;
     speechSynthesis.cancel();
