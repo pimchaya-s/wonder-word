@@ -181,9 +181,9 @@
   .princess-clock .hand{ transform-box:fill-box; transform-origin:center bottom; transition:transform .5s cubic-bezier(.34,1.56,.64,1); }
   .clock-choices{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; width:100%; max-width:440px; margin-top:6px; }
   .clock-choice{
-    font-family:inherit; font-weight:800; font-size:clamp(18px,4.5vw,24px); color:var(--ink);
+    font-family:inherit; font-weight:800; font-size:clamp(15px,3.6vw,20px); line-height:1.35; color:var(--ink);
     background:linear-gradient(180deg,#FFFFFF,#F3EEFF); border:3px solid #E4D6FF; border-radius:20px;
-    padding:16px 10px; cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,0.1); transition:transform .1s;
+    padding:14px 10px; cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,0.1); transition:transform .1s;
   }
   .clock-choice:hover{ transform:translateY(-3px) scale(1.03); }
   .clock-choice:active{ transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,0.1); }
@@ -970,30 +970,39 @@ function clockLevelMinutes(level){
   return [0,5,10,15,20,25,30,35,40,45,50,55];
 }
 
+const HOUR_WORDS = ['','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'];
+
+/* word form of a "special" time (o'clock / quarter / half); null otherwise */
+function enWordForm(h, m){
+  const hw = HOUR_WORDS[h];
+  const nh = HOUR_WORDS[h === 12 ? 1 : h+1];
+  if(m === 0) return hw + " o'clock";
+  if(m === 15) return 'quarter past ' + hw;
+  if(m === 30) return 'half past ' + hw;
+  if(m === 45) return 'quarter to ' + nh;
+  return null;
+}
+
 function timeLabel(h, m, lang, period){
   const mm = m < 10 ? '0'+m : ''+m;
   if(lang === 'th'){
     if(m === 0) return h + ' นาฬิกา';
     return h + ' นาฬิกา ' + m + ' นาที';   // ครึ่งชั่วโมง = "X นาฬิกา 30 นาที"
   }
-  let base;
-  if(m === 0) base = h + " o'clock";
-  else if(m === 15) base = 'quarter past ' + h;
-  else if(m === 30) base = 'half past ' + h;
-  else if(m === 45) base = 'quarter to ' + (h === 12 ? 1 : h+1);
-  else base = h + ':' + mm;
-  return period ? base + ' ' + period : base;
+  // English: show the digital number form AND the word form together
+  const digital = h + ':' + mm + (period ? ' ' + period : '');
+  const word = enWordForm(h, m);
+  return word ? (digital + ', ' + word) : digital;
 }
 
 function timeSpeech(h, m, lang, period){
   if(lang === 'th') return timeLabel(h, m, 'th');
-  let base;
-  if(m === 0) base = h + " o'clock";
-  else if(m === 15) base = 'quarter past ' + h;
-  else if(m === 30) base = 'half past ' + h;
-  else if(m === 45) base = 'quarter to ' + (h === 12 ? 1 : h+1);
-  else base = h + ' ' + m; // e.g. "3 20" → "three twenty"
-  return period ? base + ' ' + period : base;
+  const p = period ? ' ' + period : '';
+  const word = enWordForm(h, m);
+  if(m === 0) return word + p;                                  // "three o'clock PM"
+  const spokenDigital = h + ' ' + (m < 10 ? 'oh ' + m : m);     // "3 15" → "three fifteen"
+  if(word) return spokenDigital + ', ' + word + p;              // both forms, to teach kids
+  return spokenDigital + p;                                     // "three twenty PM"
 }
 
 function clockPraise(lang){
