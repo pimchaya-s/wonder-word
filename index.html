@@ -192,6 +192,16 @@
   .clock-choice:disabled{ cursor:default; }
   .clock-progress{ font-weight:800; color:var(--purple); margin-bottom:2px; }
 
+  /* day / night backgrounds */
+  #screen-clock{ transition:background .6s ease; border-radius:0; }
+  #screen-clock.night{ background:radial-gradient(circle at 50% 18%, #3A3B7A 0%, #1C1D48 60%, #0F1030 100%); }
+  #screen-clock.night .clock-progress{ color:#FFE27A; }
+  .night-stars{ position:absolute; inset:0; pointer-events:none; display:none; z-index:0; }
+  #screen-clock.night .night-stars{ display:block; }
+  .night-stars span{ position:absolute; font-size:20px; color:#FFF3B0; animation:twinkle 2.2s ease-in-out infinite; }
+  @keyframes twinkle{ 0%,100%{ opacity:.25; transform:scale(.85);} 50%{ opacity:1; transform:scale(1.1);} }
+  #screen-clock .clock-wrap{ position:relative; z-index:1; }
+
   footer{ margin-top:auto; padding-top:18px; font-size:14px; font-weight:700; color:var(--purple); text-align:center; }
 </style>
 </head>
@@ -282,6 +292,16 @@
 
 <!-- SCREEN 6: princess clock game -->
 <div class="screen" id="screen-clock">
+  <div class="night-stars" aria-hidden="true">
+    <span style="left:10%; top:12%;">⭐</span>
+    <span style="left:24%; top:26%; animation-delay:.5s;">✨</span>
+    <span style="left:82%; top:14%; animation-delay:.9s;">⭐</span>
+    <span style="left:90%; top:34%; animation-delay:1.4s;">✨</span>
+    <span style="left:16%; top:52%; animation-delay:.7s;">✨</span>
+    <span style="left:78%; top:56%; animation-delay:1.1s;">⭐</span>
+    <span style="left:6%; top:74%; animation-delay:1.6s;">✨</span>
+    <span style="left:88%; top:78%; animation-delay:.3s;">⭐</span>
+  </div>
   <div class="topbar">
     <button class="bigbtn back-btn" id="clockBackBtn">⬅ กลับ</button>
     <div class="score-pill">⭐ <span id="clockScore">0</span>/15</div>
@@ -1025,6 +1045,9 @@ function loadClockLevel(){
   const m = mins[Math.floor(Math.random()*mins.length)];
   clockTarget = {h, m};
   clockPeriod = clockLang === 'en' ? (Math.random() < 0.5 ? 'AM' : 'PM') : '';
+
+  // night-time (PM 🌙) → dark starry background so kids feel day vs night
+  document.getElementById('screen-clock').classList.toggle('night', clockPeriod === 'PM');
 
   document.getElementById('clockLevelNum').textContent = clockLevel;
   document.getElementById('clockScore').textContent = clockScore;
