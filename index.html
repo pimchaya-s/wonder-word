@@ -20,18 +20,25 @@
     overflow-x:hidden; color:var(--ink);
     -webkit-user-select:none; user-select:none;
   }
-  .screen{ display:none; min-height:100vh; padding:16px; flex-direction:column; align-items:center; }
+  .screen{ display:none; min-height:100vh; padding:16px; flex-direction:column; align-items:center; position:relative; }
   .screen.active{ display:flex; }
 
-  h1{ font-size:clamp(28px,6vw,44px); color:var(--pink); text-shadow:2px 2px 0 #fff, 4px 4px 0 rgba(0,0,0,0.08); margin:8px 0; text-align:center; }
+  h1{
+    font-size:clamp(30px,6vw,46px); margin:8px 0; text-align:center;
+    background:linear-gradient(90deg,#FF6FA5,#FF9A5A,#FFB84D,#7ED957,#4EC5F1,#B48CFF);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(2px 2px 0 rgba(255,255,255,0.9));
+  }
+  h1 .em{ background:none; -webkit-background-clip:initial; background-clip:initial; color:var(--ink); }
   h2{ font-size:clamp(20px,4vw,28px); margin:6px 0 14px; text-align:center; }
 
   .bigbtn{
-    font-family:inherit; font-weight:700; font-size:20px; color:#fff;
-    background:var(--pink); border:none; border-radius:20px;
-    padding:14px 28px; box-shadow:0 6px 0 rgba(0,0,0,0.15);
-    cursor:pointer; transition:transform .08s;
+    font-family:inherit; font-weight:800; font-size:20px; color:#fff;
+    background:linear-gradient(135deg,var(--pink),#FF9A7A); border:none; border-radius:26px;
+    padding:14px 30px; box-shadow:0 6px 0 rgba(0,0,0,0.15);
+    cursor:pointer; transition:transform .12s;
   }
+  .bigbtn:hover{ transform:translateY(-2px) scale(1.04); }
   .bigbtn:active{ transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,0.15); }
 
   /* ---- Mascot select ---- */
@@ -41,12 +48,14 @@
     border:5px solid transparent; cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,0.1);
     transition:transform .12s;
   }
-  .mascot-opt:hover{ transform:scale(1.08); }
-  .mascot-opt.selected{ border-color:var(--green); background:#EBFFEA; }
+  .mascot-opt:hover{ animation:wiggle .45s ease-in-out infinite; }
+  .mascot-opt.selected{ border-color:var(--green); background:#EBFFEA; transform:scale(1.06); }
+
+  .floaties span{ position:absolute; font-size:36px; opacity:.85; pointer-events:none; animation:floaty 3.6s ease-in-out infinite; }
 
   /* ---- Word grid ---- */
   .topbar{ width:100%; max-width:720px; display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
-  .score-pill{ background:#fff; border-radius:30px; padding:8px 16px; font-weight:700; font-size:18px; box-shadow:0 4px 0 rgba(0,0,0,0.08); }
+  .score-pill{ background:linear-gradient(135deg,#FFFDF3,#FFF3CE); border:2px solid #FFE7A0; border-radius:30px; padding:8px 16px; font-weight:800; font-size:18px; box-shadow:0 4px 0 rgba(0,0,0,0.08); }
   .mascot-badge{ font-size:34px; }
 
   .grid{
@@ -59,21 +68,26 @@
     transition:transform .1s;
     position:relative;
   }
-  .word-card:hover{ transform:translateY(-3px) scale(1.03); }
-  .word-card .emoji{ font-size:38px; display:block; }
+  .word-card:hover{ transform:translateY(-4px) scale(1.05); }
+  .word-card:hover .emoji{ animation:wiggle .5s ease-in-out infinite; }
+  .word-card .emoji{ font-size:40px; display:block; }
   .word-card .star{ position:absolute; top:-10px; right:-6px; font-size:20px; }
 
-  .cat-title{ width:100%; max-width:760px; font-size:18px; font-weight:800; margin:14px 0 4px; color:var(--purple); }
+  .cat-title{
+    width:100%; max-width:760px; font-size:20px; font-weight:800; margin:16px 0 6px;
+    color:var(--purple); background:rgba(255,255,255,0.8); border-radius:18px;
+    padding:8px 16px; box-shadow:0 3px 0 rgba(0,0,0,0.06);
+  }
 
   /* ---- Game screen ---- */
   .game-wrap{ width:100%; max-width:640px; display:flex; flex-direction:column; align-items:center; }
-  .mascot-big{ font-size:64px; margin-bottom:4px; }
+  .mascot-big{ font-size:64px; margin-bottom:4px; animation:floaty 2.6s ease-in-out infinite; }
   .speech{ background:#fff; border-radius:16px; padding:8px 16px; font-weight:700; font-size:18px; min-height:28px; box-shadow:0 3px 0 rgba(0,0,0,0.08); margin-bottom:10px; text-align:center;}
   .prompt-emoji{
     font-size:clamp(70px,18vw,110px); background:#fff; border-radius:32px; padding:14px 30px;
     box-shadow:0 8px 0 rgba(0,0,0,0.1); margin-bottom:16px;
   }
-  .listen-btn{ background:var(--blue); margin-bottom:14px; }
+  .listen-btn{ background:linear-gradient(135deg,#4EC5F1,#4ED8C0); margin-bottom:14px; }
 
   .slots{ display:flex; gap:16px; margin-bottom:22px; flex-wrap:wrap; justify-content:center; }
   .slot{
@@ -87,15 +101,16 @@
   .tiles{ display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-bottom:18px; }
   .tile{
     width:58px; height:64px; font-size:30px; font-weight:800; color:var(--ink);
-    background:var(--yellow); border:none; border-radius:14px; cursor:pointer;
-    box-shadow:0 5px 0 rgba(0,0,0,0.15); transition:transform .08s;
+    background:linear-gradient(180deg,#FFE699,var(--yellow)); border:none; border-radius:16px; cursor:pointer;
+    box-shadow:0 5px 0 rgba(0,0,0,0.15); transition:transform .1s;
   }
+  .tile:hover{ transform:translateY(-3px); }
   .tile:active{ transform:translateY(4px); box-shadow:0 1px 0 rgba(0,0,0,0.15); }
   .tile.used{ visibility:hidden; }
 
   .controls-row{ display:flex; gap:10px; margin-top:6px; flex-wrap:wrap; justify-content:center; }
-  .back-btn{ background:#B0B0B0; }
-  .clear-btn{ background:var(--orange); }
+  .back-btn{ background:linear-gradient(135deg,#C9C9C9,#9E9E9E); }
+  .clear-btn{ background:linear-gradient(135deg,#FF9A5A,#FFB84D); }
 
   /* Confetti */
   .confetti{ position:fixed; top:-20px; width:10px; height:16px; border-radius:3px; z-index:999; }
@@ -107,6 +122,14 @@
     0%{ transform:scale(0.6); opacity:0;} 60%{ transform:scale(1.15);} 100%{ transform:scale(1); opacity:1;}
   }
   .pop-in{ animation:pop .35s ease-out; }
+  .prompt-emoji.pop-in{ animation:pop .35s ease-out, floaty 3s ease-in-out .5s infinite; }
+
+  @keyframes floaty{
+    0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); }
+  }
+  @keyframes wiggle{
+    0%,100%{ transform:rotate(-4deg); } 50%{ transform:rotate(4deg); }
+  }
 
   @keyframes shake{
     10%,90%{ transform:translateX(-4px);} 20%,80%{ transform:translateX(6px);}
@@ -152,27 +175,35 @@
   }
   .diff-hotspot.found{ background:rgba(126,217,87,0.4); border:3px solid var(--green); }
 
-  footer{ margin-top:auto; padding-top:18px; font-size:12px; color:#999; text-align:center; }
+  footer{ margin-top:auto; padding-top:18px; font-size:14px; font-weight:700; color:var(--purple); text-align:center; }
 </style>
 </head>
 <body>
 
 <!-- SCREEN 1: mascot select -->
 <div class="screen active" id="screen-mascot">
-  <h1>🎈 เกมเรียงคำมหัศจรรย์ 🎈</h1>
+  <div class="floaties" aria-hidden="true">
+    <span style="left:6%; top:16%;">🎈</span>
+    <span style="left:14%; top:66%; animation-delay:1.2s;">🦋</span>
+    <span style="left:84%; top:20%; animation-delay:.6s;">🌈</span>
+    <span style="left:90%; top:62%; animation-delay:1.8s;">⭐</span>
+    <span style="left:70%; top:80%; animation-delay:2.4s;">🌸</span>
+    <span style="left:8%; top:40%; animation-delay:2s;">☁️</span>
+  </div>
+  <h1><span class="em">🌈</span> เกมเรียงคำมหัศจรรย์ <span class="em">🌈</span></h1>
   <h2>หนูอยากให้เพื่อนตัวไหนไปเล่นด้วยกันจ๊ะ?</h2>
   <div class="mascot-row" id="mascotRow"></div>
-  <button class="bigbtn" id="startBtn" style="margin-top:10px;">เริ่มเล่นกันเลย! 🚀</button>
-  <button class="bigbtn" id="spotStartBtn" style="margin-top:10px; background:var(--teal);">🔍 เกมจับผิด ทายภาพ</button>
-  <button class="bigbtn" id="diffStartBtn1" style="margin-top:10px; background:var(--purple);">🕵️ จับผิดภาพ ด่าน 1 (ง่าย)</button>
-  <button class="bigbtn" id="diffStartBtn2" style="margin-top:10px; background:#8B6FCE;">🕵️ จับผิดภาพ ด่าน 2 (ยาก)</button>
+  <button class="bigbtn" id="startBtn" style="margin-top:10px;">🚀 เริ่มเล่นกันเลย!</button>
+  <button class="bigbtn" id="spotStartBtn" style="margin-top:10px; background:linear-gradient(135deg,#4ED8C0,#4EC5F1);">🔍 เกมทายภาพจากคำ</button>
+  <button class="bigbtn" id="diffStartBtn1" style="margin-top:10px; background:linear-gradient(135deg,#B48CFF,#8B6FCE);">🕵️ จับผิดภาพ ด่าน 1 ⭐</button>
+  <button class="bigbtn" id="diffStartBtn2" style="margin-top:10px; background:linear-gradient(135deg,#8B6FCE,#FF6FA5);">🕵️ จับผิดภาพ ด่าน 2 ⭐⭐</button>
 </div>
 
 <!-- SCREEN 2: word grid -->
 <div class="screen" id="screen-grid">
   <div class="topbar">
     <div class="mascot-badge" id="gridMascot"></div>
-    <h1 style="font-size:26px; margin:0;">เลือกคำที่อยากเล่น</h1>
+    <h1 style="font-size:26px; margin:0;"><span class="em">✨</span> เลือกคำที่อยากเล่น <span class="em">✨</span></h1>
     <div class="score-pill">⭐ <span id="scoreCount">0</span>/<span id="totalCount1">20</span></div>
   </div>
   <div id="gridContainer" style="width:100%; max-width:760px;"></div>
@@ -230,7 +261,7 @@
   </div>
 </div>
 
-<footer>ทำด้วยความรักสำหรับนักอ่านตัวน้อย 💛</footer>
+<footer>ทำด้วยความรัก 💖 เพื่อนักอ่านตัวน้อย 🌈</footer>
 
 <script>
 /* ---------------- DATA ---------------- */
@@ -283,7 +314,7 @@ const WORDS = [
   {word:"ปู่",      emoji:"👴", cat:"ครอบครัว", color:"#FFB84D"},
   {word:"ย่า",     emoji:"👵", cat:"ครอบครัว", color:"#FFB84D"},
   {word:"ลุง",     emoji:"🧔", cat:"ครอบครัว", color:"#FFB84D"},
-  {word:"ป้า",     emoji:"👩‍🦳", cat:"ครอบครัว", color:"#FFB84D"},
+  {word:"ป้า",     emoji:"🧓", cat:"ครอบครัว", color:"#FFB84D"},
   {word:"หลาน",   emoji:"👶", cat:"ครอบครัว", color:"#FFB84D"},
   {word:"พี่ชาย",   emoji:"👦", cat:"ครอบครัว", color:"#FFB84D", hint:true},
   {word:"น้องสาว", emoji:"👧", cat:"ครอบครัว", color:"#FFB84D", hint:true},
@@ -391,12 +422,12 @@ function buildGrid(){
   });
 }
 function catLabel(cat){
-  if(cat==='สัตว์') return '🐾 หมวดสัตว์';
-  if(cat==='ผลไม้') return '🍎 หมวดผลไม้';
-  if(cat==='สิ่งของ') return '🧸 หมวดสิ่งของ';
-  if(cat==='มานีมานะ') return '📖 หมวดมานีมานะ';
-  if(cat==='ดรุณศึกษา') return '📚 หมวดดรุณศึกษา';
-  return '❤️ หมวดครอบครัว';
+  if(cat==='สัตว์') return '🐶🐱 หมวดสัตว์น่ารัก';
+  if(cat==='ผลไม้') return '🍎🍌 หมวดผลไม้แสนอร่อย';
+  if(cat==='สิ่งของ') return '🧸✨ หมวดสิ่งของรอบตัว';
+  if(cat==='มานีมานะ') return '📖💖 หมวดมานีมานะ';
+  if(cat==='ดรุณศึกษา') return '📚🌟 หมวดดรุณศึกษา';
+  return '❤️🏠 หมวดครอบครัวอบอุ่น';
 }
 
 /* ---------------- GAME SCREEN ---------------- */
@@ -605,8 +636,8 @@ const DIFF_WORDS = {
 };
 const DIFF_CATS = ['animals','fruitveg','household','vehicnature','foodetc'];
 const DIFF_CAT_LABELS = {
-  animals:"🐾 หมวดสัตว์", fruitveg:"🍎 หมวดผลไม้-ผัก", household:"🎒 หมวดของใช้",
-  vehicnature:"✈️ หมวดยานพาหนะ-ธรรมชาติ", foodetc:"🍜 หมวดอาหาร-เครื่องแต่งกาย"
+  animals:"🐰🦋 สัตว์น่ารัก", fruitveg:"🍉🥭 ผลไม้-ผักแสนสด", household:"🎒✏️ ของใช้ใกล้ตัว",
+  vehicnature:"🚂🌈 ยานพาหนะ-ธรรมชาติ", foodetc:"🍦🍜 อาหารอร่อย-เสื้อผ้า"
 };
 /* ของตกแต่งน่ารักๆ แยกตามหมวด (2 ชุดสลับ) เลี่ยงไม่ให้ซ้ำกับคำศัพท์ในหมวดนั้น เช่น
    หมวดยานพาหนะ-ธรรมชาติ มีคำว่า สายรุ้ง/ดอกไม้/ดวงอาทิตย์/ดวงจันทร์/ต้นไม้ อยู่แล้ว จึงไม่ใช้ซ้ำ */
