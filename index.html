@@ -608,10 +608,37 @@ const DIFF_CAT_LABELS = {
   animals:"🐾 หมวดสัตว์", fruitveg:"🍎 หมวดผลไม้-ผัก", household:"🎒 หมวดของใช้",
   vehicnature:"✈️ หมวดยานพาหนะ-ธรรมชาติ", foodetc:"🍜 หมวดอาหาร-เครื่องแต่งกาย"
 };
-const DIFF_FILLERS = [
-  {id:"f1", emoji:"☁️", alt:"🌥️"}, {id:"f2", emoji:"☁️", alt:"🌥️"},
-  {id:"f3", emoji:"🌱", alt:"🍀"}, {id:"f4", emoji:"🌱", alt:"🍀"},
-  {id:"f5", emoji:"⭐", alt:"🌟"}, {id:"f6", emoji:"🪨", alt:null}
+/* ของตกแต่งน่ารักๆ แยกตามหมวด (2 ชุดสลับ) เลี่ยงไม่ให้ซ้ำกับคำศัพท์ในหมวดนั้น เช่น
+   หมวดยานพาหนะ-ธรรมชาติ มีคำว่า สายรุ้ง/ดอกไม้/ดวงอาทิตย์/ดวงจันทร์/ต้นไม้ อยู่แล้ว จึงไม่ใช้ซ้ำ */
+const FILLER_VARIANTS = {
+  animals: [
+    [{emoji:"🌈",alt:null},{emoji:"🌸",alt:"🌼"},{emoji:"⭐",alt:"🌟"},{emoji:"☁️",alt:"🌥️"},{emoji:"✨",alt:null},{emoji:"🌱",alt:"🍀"}],
+    [{emoji:"🎀",alt:null},{emoji:"🌷",alt:"🌻"},{emoji:"☁️",alt:"🌥️"},{emoji:"⭐",alt:"🌟"},{emoji:"🍄",alt:null},{emoji:"🌱",alt:"🍀"}]
+  ],
+  fruitveg: [
+    [{emoji:"🦋",alt:null},{emoji:"⭐",alt:"🌟"},{emoji:"☁️",alt:"🌥️"},{emoji:"✨",alt:null},{emoji:"🌱",alt:"🍀"},{emoji:"🌈",alt:null}],
+    [{emoji:"🦋",alt:null},{emoji:"🎀",alt:null},{emoji:"☁️",alt:"🌥️"},{emoji:"🌱",alt:"🍀"},{emoji:"⭐",alt:"🌟"},{emoji:"🍄",alt:null}]
+  ],
+  household: [
+    [{emoji:"🦋",alt:null},{emoji:"🌈",alt:null},{emoji:"🌸",alt:"🌼"},{emoji:"⭐",alt:"🌟"},{emoji:"☁️",alt:"🌥️"},{emoji:"✨",alt:null}],
+    [{emoji:"🎀",alt:null},{emoji:"🌷",alt:"🌻"},{emoji:"☁️",alt:"🌥️"},{emoji:"🍄",alt:null},{emoji:"⭐",alt:"🌟"},{emoji:"🌱",alt:"🍀"}]
+  ],
+  vehicnature: [
+    [{emoji:"🦋",alt:null},{emoji:"🦋",alt:null},{emoji:"⭐",alt:"🌟"},{emoji:"✨",alt:null},{emoji:"☁️",alt:"🌥️"},{emoji:"🌱",alt:"🍀"}],
+    [{emoji:"🦋",alt:null},{emoji:"🎀",alt:null},{emoji:"⭐",alt:"🌟"},{emoji:"☁️",alt:"🌥️"},{emoji:"🍄",alt:null},{emoji:"✨",alt:null}]
+  ],
+  foodetc: [
+    [{emoji:"🌈",alt:null},{emoji:"🦋",alt:null},{emoji:"🌸",alt:"🌼"},{emoji:"⭐",alt:"🌟"},{emoji:"☁️",alt:"🌥️"},{emoji:"✨",alt:null}],
+    [{emoji:"🎀",alt:null},{emoji:"🌷",alt:"🌻"},{emoji:"☁️",alt:"🌥️"},{emoji:"🍄",alt:null},{emoji:"⭐",alt:"🌟"},{emoji:"🌱",alt:"🍀"}]
+  ]
+};
+/* พื้นหลังฉากสลับสีสวยๆ ไม่ให้หน้าตาซ้ำกันทุกด่าน */
+const DIFF_BG_THEMES = [
+  "linear-gradient(180deg,#BEE7FF 0%,#EAFBE0 65%,#CFF0B0 100%)",
+  "linear-gradient(180deg,#FFE3EC 0%,#FFF3D6 60%,#FFE8B8 100%)",
+  "linear-gradient(180deg,#E0F7FF 0%,#F0E6FF 60%,#E9D9FF 100%)",
+  "linear-gradient(180deg,#FFF9E0 0%,#E8FFEE 60%,#D9FFE3 100%)",
+  "linear-gradient(180deg,#E6F0FF 0%,#FDE8FF 60%,#FFD9F0 100%)"
 ];
 /* 16 ตำแหน่ง (%): 6 ของตกแต่ง + 9 คำศัพท์หลัก + 1 คำสำรอง (ใช้กับ diff แบบ "เพิ่มรูป") */
 const DIFF_POSITIONS = [
@@ -626,6 +653,7 @@ let diffLevelIdx = 0;
 let diffBaseItems = [];
 let diffLevelDiffs = [];
 let diffFoundSet = new Set();
+let diffBgTheme = "";
 
 function diffLevelCount(gameNum, levelIdx){
   const startVal = gameNum === 1 ? 4 : 8;
@@ -659,7 +687,11 @@ function loadDiffLevel(){
   const words = DIFF_WORDS[catKey];
   const baseWords = words.slice(0,9).map((w,i)=>({id:'w'+i, emoji:w.e, label:w.w, alt:null}));
   const reservedWord = {id:'wR', emoji:words[9].e, label:words[9].w, alt:null};
-  const fillerItems = DIFF_FILLERS.map(f=>({id:f.id, emoji:f.emoji, label:null, alt:f.alt}));
+
+  const variantIdx = Math.floor(diffLevelIdx / DIFF_CATS.length) % FILLER_VARIANTS[catKey].length;
+  const fillerItems = FILLER_VARIANTS[catKey][variantIdx].map((f,i)=>({id:'f'+i, emoji:f.emoji, label:null, alt:f.alt}));
+
+  diffBgTheme = DIFF_BG_THEMES[diffLevelIdx % DIFF_BG_THEMES.length];
 
   const positions = shuffle(DIFF_POSITIONS.slice());
   const allSlots = fillerItems.concat(baseWords);
@@ -737,6 +769,7 @@ function renderDiffLevelScene(){
 function buildDiffLevelPanel(panelId, items, side){
   const panel = document.getElementById(panelId);
   panel.innerHTML = '';
+  panel.style.background = diffBgTheme;
   items.forEach(it=>{
     const wrap = document.createElement('div');
     wrap.className = 'diff-item';
