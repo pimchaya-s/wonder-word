@@ -175,6 +175,23 @@
   }
   .diff-hotspot.found{ background:rgba(126,217,87,0.4); border:3px solid var(--green); }
 
+  /* ---- Princess clock game ---- */
+  .clock-wrap{ width:100%; max-width:520px; display:flex; flex-direction:column; align-items:center; }
+  .princess-clock{ width:min(300px,80vw); margin:4px 0 8px; filter:drop-shadow(0 6px 8px rgba(180,140,255,0.3)); }
+  .princess-clock .hand{ transform-box:fill-box; transform-origin:center bottom; transition:transform .5s cubic-bezier(.34,1.56,.64,1); }
+  .clock-choices{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; width:100%; max-width:440px; margin-top:6px; }
+  .clock-choice{
+    font-family:inherit; font-weight:800; font-size:clamp(18px,4.5vw,24px); color:var(--ink);
+    background:linear-gradient(180deg,#FFFFFF,#F3EEFF); border:3px solid #E4D6FF; border-radius:20px;
+    padding:16px 10px; cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,0.1); transition:transform .1s;
+  }
+  .clock-choice:hover{ transform:translateY(-3px) scale(1.03); }
+  .clock-choice:active{ transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,0.1); }
+  .clock-choice.is-right{ background:#EBFFEA; border-color:var(--green); animation:pop .35s ease-out; }
+  .clock-choice.is-wrong{ background:#FFECEC; border-color:#FF6B6B; }
+  .clock-choice:disabled{ cursor:default; }
+  .clock-progress{ font-weight:800; color:var(--purple); margin-bottom:2px; }
+
   footer{ margin-top:auto; padding-top:18px; font-size:14px; font-weight:700; color:var(--purple); text-align:center; }
 </style>
 </head>
@@ -197,6 +214,8 @@
   <button class="bigbtn" id="spotStartBtn" style="margin-top:10px; background:linear-gradient(135deg,#4ED8C0,#4EC5F1);">🔍 เกมทายภาพจากคำ</button>
   <button class="bigbtn" id="diffStartBtn1" style="margin-top:10px; background:linear-gradient(135deg,#B48CFF,#8B6FCE);">🕵️ จับผิดภาพ ด่าน 1 ⭐</button>
   <button class="bigbtn" id="diffStartBtn2" style="margin-top:10px; background:linear-gradient(135deg,#8B6FCE,#FF6FA5);">🕵️ จับผิดภาพ ด่าน 2 ⭐⭐</button>
+  <button class="bigbtn" id="clockThaiBtn" style="margin-top:10px; background:linear-gradient(135deg,#FF9AD5,#B48CFF);">👑 นาฬิกาเจ้าหญิง (ไทย)</button>
+  <button class="bigbtn" id="clockEngBtn" style="margin-top:10px; background:linear-gradient(135deg,#7AC8FF,#B48CFF);">👑 Princess Clock (English)</button>
 </div>
 
 <!-- SCREEN 2: word grid -->
@@ -258,6 +277,65 @@
     <div class="controls-row" id="diffControls" style="margin-top:16px; display:none;">
       <button class="bigbtn clear-btn" id="diffReplayBtn">🔁 เล่นใหม่</button>
     </div>
+  </div>
+</div>
+
+<!-- SCREEN 6: princess clock game -->
+<div class="screen" id="screen-clock">
+  <div class="topbar">
+    <button class="bigbtn back-btn" id="clockBackBtn">⬅ กลับ</button>
+    <div class="score-pill">⭐ <span id="clockScore">0</span>/15</div>
+  </div>
+  <div class="clock-wrap">
+    <div class="clock-progress">ด่านที่ <span id="clockLevelNum">1</span>/15</div>
+    <svg class="princess-clock" id="princessClock" viewBox="0 0 300 360" xmlns="http://www.w3.org/2000/svg">
+      <!-- long blue skirt -->
+      <path d="M150 108 C 66 120, 18 300, 26 352 L 274 352 C 282 300, 234 120, 150 108 Z" fill="#6FBEF7"/>
+      <path d="M150 108 C 108 120, 82 262, 70 352 L 230 352 C 218 262, 192 120, 150 108 Z" fill="#A9DCFF" opacity="0.65"/>
+      <!-- neck -->
+      <rect x="141" y="86" width="18" height="26" rx="7" fill="#FFF2E7"/>
+      <!-- bodice -->
+      <path d="M150 96 C 118 96, 106 118, 106 142 L 194 142 C 194 118, 182 96, 150 96 Z" fill="#4FA9EE"/>
+      <path d="M150 96 L150 142" stroke="#3E96DA" stroke-width="2" opacity="0.5"/>
+      <!-- golden braid over left shoulder -->
+      <g fill="#F5C542" stroke="#E0A92E" stroke-width="1.5">
+        <circle cx="120" cy="80" r="10"/>
+        <circle cx="114" cy="96" r="9"/>
+        <circle cx="110" cy="112" r="8"/>
+        <circle cx="107" cy="127" r="7"/>
+        <circle cx="105" cy="140" r="6"/>
+      </g>
+      <path d="M104 146 L100 156 L110 156 Z" fill="#E0A92E"/>
+      <!-- hair top -->
+      <path d="M120 58 C 120 30, 180 30, 180 58 C 186 46, 178 34, 150 32 C 122 34, 114 46, 120 58 Z" fill="#F5C542"/>
+      <!-- head / white skin -->
+      <circle cx="150" cy="62" r="29" fill="#FFF2E7"/>
+      <!-- hair fringe -->
+      <path d="M122 54 C 128 40, 172 40, 178 54 C 170 48, 158 46, 150 46 C 142 46, 130 48, 122 54 Z" fill="#F5C542"/>
+      <!-- crown -->
+      <path d="M128 34 L134 22 L150 32 L166 22 L172 34 Z" fill="#FFD84D" stroke="#E7B21E" stroke-width="1.5"/>
+      <circle cx="134" cy="22" r="3" fill="#FF6FA5"/>
+      <circle cx="150" cy="30" r="3" fill="#4EC5F1"/>
+      <circle cx="166" cy="22" r="3" fill="#7ED957"/>
+      <!-- face -->
+      <circle cx="140" cy="62" r="3" fill="#4A3B32"/>
+      <circle cx="160" cy="62" r="3" fill="#4A3B32"/>
+      <circle cx="131" cy="70" r="4.5" fill="#FFB6C1" opacity="0.7"/>
+      <circle cx="169" cy="70" r="4.5" fill="#FFB6C1" opacity="0.7"/>
+      <path d="M143 73 Q150 79 157 73" stroke="#E0787F" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- clock face -->
+      <circle cx="150" cy="238" r="84" fill="#FFFDF7" stroke="#FFD84D" stroke-width="9"/>
+      <circle cx="150" cy="238" r="84" fill="none" stroke="#E7B21E" stroke-width="2"/>
+      <g id="clockNumbers"></g>
+      <!-- minute hand -->
+      <rect id="minuteHand" class="hand" x="147.5" y="176" width="5" height="62" rx="2.5" fill="#B48CFF"/>
+      <!-- hour hand -->
+      <rect id="hourHand" class="hand" x="146" y="196" width="8" height="42" rx="4" fill="#FF6FA5"/>
+      <circle cx="150" cy="238" r="7" fill="#FFD84D" stroke="#E7B21E" stroke-width="2"/>
+    </svg>
+    <div class="speech" id="clockSpeech">นาฬิกาบอกเวลาอะไรจ๊ะ?</div>
+    <button class="bigbtn listen-btn" id="clockListenBtn" style="margin-bottom:12px;">🔊 ฟังอีกครั้ง</button>
+    <div class="clock-choices" id="clockChoices"></div>
   </div>
 </div>
 
@@ -383,6 +461,11 @@ function init(){
   document.getElementById('diffStartBtn2').onclick = ()=> startDiffGame(2);
   document.getElementById('diffBackBtn').onclick = ()=> showScreen('screen-mascot');
   document.getElementById('diffReplayBtn').onclick = ()=> startDiffGame(diffGameNum);
+
+  document.getElementById('clockThaiBtn').onclick = ()=> startClockGame('th');
+  document.getElementById('clockEngBtn').onclick = ()=> startClockGame('en');
+  document.getElementById('clockBackBtn').onclick = ()=> showScreen('screen-mascot');
+  document.getElementById('clockListenBtn').onclick = ()=> speakLang(timeSpeech(clockTarget.h, clockTarget.m, clockLang), clockLang);
 
   buildGrid();
 }
@@ -849,6 +932,164 @@ function finishDiffGame(){
   launchConfetti();
 }
 
+/* ---------------- PRINCESS CLOCK GAME ---------------- */
+let clockLang = 'th';
+let clockLevel = 1;
+let clockScore = 0;
+let clockTarget = {h:3, m:0};
+
+function setupClockNumbers(){
+  const g = document.getElementById('clockNumbers');
+  if(!g || g.childNodes.length) return;
+  const cx = 150, cy = 238, r = 64;
+  for(let n=1; n<=12; n++){
+    const a = n * 30 * Math.PI / 180;
+    const x = cx + r * Math.sin(a);
+    const y = cy - r * Math.cos(a);
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', x); t.setAttribute('y', y);
+    t.setAttribute('text-anchor','middle');
+    t.setAttribute('dominant-baseline','central');
+    t.setAttribute('font-size','18');
+    t.setAttribute('font-weight','800');
+    t.setAttribute('fill','#6B5AA8');
+    t.setAttribute('font-family',"'Mali',sans-serif");
+    t.textContent = n;
+    g.appendChild(t);
+  }
+}
+
+/* minutes allowed at each level — easy (whole hours) to hard (any 5-min) */
+function clockLevelMinutes(level){
+  if(level <= 5) return [0];
+  if(level <= 8) return [0,30];
+  if(level <= 10) return [0,15,30,45];
+  return [0,5,10,15,20,25,30,35,40,45,50,55];
+}
+
+function timeLabel(h, m, lang){
+  const mm = m < 10 ? '0'+m : ''+m;
+  if(lang === 'th'){
+    if(m === 0) return h + ' นาฬิกา';
+    if(m === 30) return h + ' นาฬิกาครึ่ง';
+    return h + ' นาฬิกา ' + m + ' นาที';
+  }
+  if(m === 0) return h + " o'clock";
+  if(m === 15) return 'quarter past ' + h;
+  if(m === 30) return 'half past ' + h;
+  if(m === 45) return 'quarter to ' + (h === 12 ? 1 : h+1);
+  return h + ':' + mm;
+}
+
+function timeSpeech(h, m, lang){
+  if(lang === 'th') return timeLabel(h, m, 'th');
+  if(m === 0 || m === 15 || m === 30 || m === 45) return timeLabel(h, m, 'en');
+  return h + ' ' + m; // e.g. "3 20" → "three twenty"
+}
+
+function startClockGame(lang){
+  clockLang = lang;
+  clockLevel = 1;
+  clockScore = 0;
+  document.getElementById('clockScore').textContent = 0;
+  setupClockNumbers();
+  showScreen('screen-clock');
+  loadClockLevel();
+}
+
+function loadClockLevel(){
+  const mins = clockLevelMinutes(clockLevel);
+  const h = 1 + Math.floor(Math.random()*12);
+  const m = mins[Math.floor(Math.random()*mins.length)];
+  clockTarget = {h, m};
+
+  document.getElementById('clockLevelNum').textContent = clockLevel;
+  document.getElementById('clockScore').textContent = clockScore;
+  document.getElementById('clockSpeech').textContent =
+    clockLang === 'th' ? 'นาฬิกาบอกเวลาอะไรจ๊ะ?' : 'What time is it? 🕐';
+  document.getElementById('clockListenBtn').textContent =
+    clockLang === 'th' ? '🔊 ฟังอีกครั้ง' : '🔊 Listen again';
+
+  setClockHands(h, m);
+  renderClockChoices();
+}
+
+function setClockHands(h, m){
+  const hourDeg = (h % 12) * 30 + m * 0.5;
+  const minDeg = m * 6;
+  document.getElementById('hourHand').style.transform = `rotate(${hourDeg}deg)`;
+  document.getElementById('minuteHand').style.transform = `rotate(${minDeg}deg)`;
+}
+
+function renderClockChoices(){
+  const mins = clockLevelMinutes(clockLevel);
+  const correctKey = clockTarget.h + ':' + clockTarget.m;
+  const options = [{...clockTarget}];
+  const seen = new Set([correctKey]);
+  let guard = 0;
+  while(options.length < 4 && guard++ < 200){
+    let dh = clockTarget.h, dm = clockTarget.m;
+    if(Math.random() < 0.5){
+      dh = 1 + Math.floor(Math.random()*12);
+    } else {
+      dm = mins[Math.floor(Math.random()*mins.length)];
+      if(Math.random() < 0.4) dh = 1 + Math.floor(Math.random()*12);
+    }
+    const key = dh + ':' + dm;
+    if(!seen.has(key)){ seen.add(key); options.push({h:dh, m:dm}); }
+  }
+  shuffle(options);
+
+  const box = document.getElementById('clockChoices');
+  box.innerHTML = '';
+  options.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'clock-choice';
+    btn.textContent = timeLabel(opt.h, opt.m, clockLang);
+    btn.onclick = ()=> chooseClock(opt, btn);
+    box.appendChild(btn);
+  });
+
+  // read the time aloud when a new level appears
+  setTimeout(()=> speakLang(timeSpeech(clockTarget.h, clockTarget.m, clockLang), clockLang), 400);
+}
+
+function chooseClock(opt, btn){
+  const isCorrect = opt.h === clockTarget.h && opt.m === clockTarget.m;
+  if(isCorrect){
+    btn.classList.add('is-right');
+    document.querySelectorAll('.clock-choice').forEach(b=> b.disabled = true);
+    clockScore++;
+    document.getElementById('clockScore').textContent = clockScore;
+    document.getElementById('clockSpeech').textContent =
+      clockLang === 'th' ? 'เก่งมาก! ถูกต้องจ้า 🎉' : 'Great job! Correct 🎉';
+    playSuccess();
+    speakLang(timeSpeech(clockTarget.h, clockTarget.m, clockLang), clockLang);
+    launchConfetti();
+    setTimeout(()=>{
+      if(clockLevel >= 15){ finishClockGame(); }
+      else { clockLevel++; loadClockLevel(); }
+    }, 1700);
+  } else {
+    btn.classList.add('is-wrong');
+    btn.disabled = true;
+    playTone(180,0.25);
+    document.getElementById('clockSpeech').textContent =
+      clockLang === 'th' ? 'ยังไม่ถูกนะ ลองอีกครั้ง! 💪' : 'Not yet, try again! 💪';
+  }
+}
+
+function finishClockGame(){
+  document.getElementById('clockSpeech').textContent =
+    clockLang === 'th' ? 'เยี่ยมมาก! อ่านนาฬิกาครบ 15 ด่านแล้ว 👑' : 'Amazing! You finished all 15 levels 👑';
+  document.getElementById('clockChoices').innerHTML =
+    '<button class="bigbtn" id="clockReplayInline" style="grid-column:1/3; background:linear-gradient(135deg,#FF9AD5,#B48CFF);">' +
+    (clockLang === 'th' ? '🔁 เล่นอีกครั้ง' : '🔁 Play again') + '</button>';
+  document.getElementById('clockReplayInline').onclick = ()=> startClockGame(clockLang);
+  playSuccess();
+  launchConfetti();
+}
+
 /* ---------------- AUDIO ---------------- */
 function ensureAudio(){
   if(!audioCtx){
@@ -875,10 +1116,13 @@ function speakWord(){
   speakText(WORDS[currentIdx].word);
 }
 function speakText(text){
+  speakLang(text, 'th');
+}
+function speakLang(text, lang){
   try{
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'th-TH';
-    u.rate = 0.8;
+    u.lang = lang === 'en' ? 'en-US' : 'th-TH';
+    u.rate = lang === 'en' ? 0.85 : 0.8;
     speechSynthesis.cancel();
     speechSynthesis.speak(u);
   }catch(e){}
