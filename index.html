@@ -1130,8 +1130,9 @@ function loadClockLevel(){
   document.getElementById('clockSpeech').textContent =
     clockLang === 'th' ? 'นาฬิกาบอกเวลาอะไรจ๊ะ?'
                        : 'What time is it? ' + (isDay ? '☀️' : '🌙');
-  document.getElementById('clockListenBtn').textContent =
-    clockLang === 'th' ? '🔊 ฟังอีกครั้ง' : '🔊 Listen again';
+  document.getElementById('clockListenBtn').textContent = '🔊 ฟังอีกครั้ง';
+  // the English version has no audio, so hide its "listen" button
+  document.getElementById('clockListenBtn').style.display = clockLang === 'th' ? '' : 'none';
 
   setClockHands(h, m);
   renderClockChoices();
@@ -1212,8 +1213,8 @@ function renderClockChoices(){
     box.appendChild(btn);
   });
 
-  // read the time aloud (in Thai) when a new level appears
-  setTimeout(()=> speakLang(clockSpokenTime(), 'th'), 400);
+  // read the time aloud when a new level appears (Thai version only)
+  if(clockLang === 'th') setTimeout(()=> speakLang(clockSpokenTime(), 'th'), 400);
 }
 
 function chooseClock(opt, btn){
@@ -1227,8 +1228,7 @@ function chooseClock(opt, btn){
     document.getElementById('clockScore').textContent = clockScore;
     document.getElementById('clockSpeech').textContent =
       clockLang === 'en' ? 'Good! 🎉' : 'เยี่ยมไปเลยค่ะ! 🎉';
-    playSuccess();
-    speakSequence([praise, clockSpokenTime()], 'th');
+    if(clockLang === 'th'){ playSuccess(); speakSequence([praise, clockSpokenTime()], 'th'); }
     launchConfetti();
     setTimeout(()=>{
       if(clockLevel >= 15){ finishClockGame(); }
@@ -1237,7 +1237,7 @@ function chooseClock(opt, btn){
   } else {
     btn.classList.add('is-wrong');
     btn.disabled = true;
-    playTone(180,0.25);
+    if(clockLang === 'th') playTone(180,0.25);
     // reveal the answer with a Thai explanation (both TH and EN versions)
     revealClockAnswer();
   }
@@ -1258,7 +1258,7 @@ function clockExplainTH(){
 function revealClockAnswer(){
   const text = clockExplainTH();
   document.getElementById('clockSpeech').textContent = '💡 ' + text;
-  speakLang(text, 'th');
+  if(clockLang === 'th') speakLang(text, 'th');   // English version stays silent
 }
 
 function finishClockGame(){
@@ -1268,7 +1268,7 @@ function finishClockGame(){
     '<button class="bigbtn" id="clockReplayInline" style="grid-column:1/3; background:linear-gradient(135deg,#FF9AD5,#B48CFF);">' +
     (clockLang === 'th' ? '🔁 เล่นอีกครั้ง' : '🔁 Play again') + '</button>';
   document.getElementById('clockReplayInline').onclick = ()=> startClockGame(clockLang);
-  playSuccess();
+  if(clockLang === 'th') playSuccess();
   launchConfetti();
 }
 
