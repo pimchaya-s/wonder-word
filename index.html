@@ -1203,7 +1203,7 @@ function clockExplainTH(){
   else if(m < 30) shortHand = 'เข็มสั้น (สีชมพู) เลยเลข ' + h + ' มานิดหนึ่ง';
   else shortHand = 'เข็มสั้น (สีชมพู) อยู่ระหว่างเลข ' + h + ' กับ ' + (h === 12 ? 1 : h+1);
   const longHand = 'เข็มยาว (สีม่วง) ชี้ที่เลข ' + minPoint;
-  return shortHand + ' ' + longHand + ' อ่านว่า ' + timeLabel(h, m, 'th') + ' จ้ะ';
+  return shortHand + ' ' + longHand + ' อ่านว่า ' + timeLabel(h, m, 'th');
 }
 
 function revealClockAnswer(){
