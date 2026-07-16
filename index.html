@@ -510,7 +510,7 @@ function init(){
   document.getElementById('clockThaiBtn').onclick = ()=> startClockGame('th');
   document.getElementById('clockEngBtn').onclick = ()=> startClockGame('en');
   document.getElementById('clockBackBtn').onclick = ()=> showScreen('screen-mascot');
-  document.getElementById('clockListenBtn').onclick = ()=> speakLang(timeLabel(clockTarget.h, clockTarget.m, 'th'), 'th');
+  document.getElementById('clockListenBtn').onclick = ()=> speakLang(clockSpokenTime(), 'th');
   document.getElementById('clockHintBtn').onclick = revealClockAnswer;
 
   // warm up speech voices (they load asynchronously on some browsers)
@@ -1053,6 +1053,29 @@ function timeSpeech(h, m, lang, period){
   return spokenDigital + p;                                     // "three twenty PM"
 }
 
+/* English time in Thai-script transliteration, so the (working) Thai voice
+   reads it as English: e.g. 1:00 → "วัน โอคล็อก", 3:15 PM → "ควอเตอร์ พาสต์ ทรี พีเอ็ม" */
+const EN_TL_HOUR = {1:'วัน',2:'ทู',3:'ทรี',4:'โฟร์',5:'ไฟฟ์',6:'ซิกซ์',7:'เซเว่น',8:'เอต',9:'ไนน์',10:'เท็น',11:'อีเลฟเว่น',12:'ทเวลฟ์'};
+const EN_TL_MIN = {5:'โอ ไฟฟ์',10:'เท็น',20:'ทเวนที',25:'ทเวนที ไฟฟ์',35:'เธอที ไฟฟ์',40:'โฟร์ที',50:'ฟิฟที',55:'ฟิฟที ไฟฟ์'};
+function timeSpeechEnTL(h, m, period){
+  const hw = EN_TL_HOUR[h];
+  const nh = EN_TL_HOUR[h === 12 ? 1 : h+1];
+  let base;
+  if(m === 0) base = hw + ' โอคล็อก';
+  else if(m === 15) base = 'ควอเตอร์ พาสต์ ' + hw;
+  else if(m === 30) base = 'ฮาล์ฟ พาสต์ ' + hw;
+  else if(m === 45) base = 'ควอเตอร์ ทู ' + nh;
+  else base = hw + ' ' + (EN_TL_MIN[m] || '');
+  const p = period === 'AM' ? ' เอเอ็ม' : (period === 'PM' ? ' พีเอ็ม' : '');
+  return base + p;
+}
+
+/* what the voice should say for the current clock time (Thai voice either way) */
+function clockSpokenTime(){
+  if(clockLang === 'en') return timeSpeechEnTL(clockTarget.h, clockTarget.m, clockPeriod);
+  return timeLabel(clockTarget.h, clockTarget.m, 'th');
+}
+
 function clockPraise(lang){
   return lang === 'th' ? 'เยี่ยมไปเลยค่ะ' : 'Good';
 }
@@ -1165,21 +1188,22 @@ function renderClockChoices(){
   });
 
   // read the time aloud (in Thai) when a new level appears
-  setTimeout(()=> speakLang(timeLabel(clockTarget.h, clockTarget.m, 'th'), 'th'), 400);
+  setTimeout(()=> speakLang(clockSpokenTime(), 'th'), 400);
 }
 
 function chooseClock(opt, btn){
   const isCorrect = opt.h === clockTarget.h && opt.m === clockTarget.m;
-  // always narrate in Thai (the working voice) so it sounds like the Thai version
-  const timeThai = timeLabel(clockTarget.h, clockTarget.m, 'th');
+  // narrate with the Thai voice; English uses English transliteration
+  const praise = clockLang === 'en' ? 'กู๊ด' : 'เยี่ยมไปเลยค่ะ';
   if(isCorrect){
     btn.classList.add('is-right');
     document.querySelectorAll('.clock-choice').forEach(b=> b.disabled = true);
     clockScore++;
     document.getElementById('clockScore').textContent = clockScore;
-    document.getElementById('clockSpeech').textContent = 'เยี่ยมไปเลยค่ะ! 🎉';
+    document.getElementById('clockSpeech').textContent =
+      clockLang === 'en' ? 'Good! 🎉' : 'เยี่ยมไปเลยค่ะ! 🎉';
     playSuccess();
-    speakSequence(['เยี่ยมไปเลยค่ะ', timeThai], 'th');
+    speakSequence([praise, clockSpokenTime()], 'th');
     launchConfetti();
     setTimeout(()=>{
       if(clockLevel >= 15){ finishClockGame(); }
