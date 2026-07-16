@@ -518,8 +518,25 @@ function init(){
     speechSynthesis.getVoices();
     speechSynthesis.onvoiceschanged = ()=> speechSynthesis.getVoices();
   }
+  // unlock audio + speech on the first user gesture (needed on mobile)
+  document.addEventListener('pointerdown', unlockAudioOnce, {once:true});
+  document.addEventListener('click', unlockAudioOnce, {once:true});
 
   buildGrid();
+}
+
+let audioUnlocked = false;
+function unlockAudioOnce(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  ensureAudio();
+  if('speechSynthesis' in window){
+    try{
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
 }
 
 function showScreen(id){
