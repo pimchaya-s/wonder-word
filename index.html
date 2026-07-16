@@ -1056,18 +1056,26 @@ function timeSpeech(h, m, lang, period){
 /* English time in Thai-script transliteration, so the (working) Thai voice
    reads it as English: e.g. 1:00 → "วัน โอคล็อก", 3:15 PM → "ควอเตอร์ พาสต์ ทรี พีเอ็ม" */
 const EN_TL_HOUR = {1:'วัน',2:'ทู',3:'ทรี',4:'โฟร์',5:'ไฟฟ์',6:'ซิกซ์',7:'เซเว่น',8:'เอต',9:'ไนน์',10:'เท็น',11:'อีเลฟเว่น',12:'ทเวลฟ์'};
-const EN_TL_MIN = {5:'โอ ไฟฟ์',10:'เท็น',20:'ทเวนที',25:'ทเวนที ไฟฟ์',35:'เธอที ไฟฟ์',40:'โฟร์ที',50:'ฟิฟที',55:'ฟิฟที ไฟฟ์'};
-function timeSpeechEnTL(h, m, period){
+const EN_TL_MIN = {5:'โอ ไฟฟ์',10:'เท็น',15:'ฟิฟทีน',20:'ทเวนที',25:'ทเวนที ไฟฟ์',30:'เธอที',35:'เธอที ไฟฟ์',40:'โฟร์ที',45:'โฟร์ที ไฟฟ์',50:'ฟิฟที',55:'ฟิฟที ไฟฟ์'};
+/* digital reading, numbers front to back: 3:15 → "ทรี ฟิฟทีน" */
+function enDigitalTL(h, m){
+  const hw = EN_TL_HOUR[h];
+  return m === 0 ? hw + ' โอคล็อก' : hw + ' ' + EN_TL_MIN[m];
+}
+/* the other way to say it (quarter/half); null if none */
+function enWordTL(h, m){
   const hw = EN_TL_HOUR[h];
   const nh = EN_TL_HOUR[h === 12 ? 1 : h+1];
-  let base;
-  if(m === 0) base = hw + ' โอคล็อก';
-  else if(m === 15) base = 'ควอเตอร์ พาสต์ ' + hw;
-  else if(m === 30) base = 'ฮาล์ฟ พาสต์ ' + hw;
-  else if(m === 45) base = 'ควอเตอร์ ทู ' + nh;
-  else base = hw + ' ' + (EN_TL_MIN[m] || '');
+  if(m === 15) return 'ควอเตอร์ พาสต์ ' + hw;
+  if(m === 30) return 'ฮาล์ฟ พาสต์ ' + hw;
+  if(m === 45) return 'ควอเตอร์ ทู ' + nh;
+  return null;
+}
+function timeSpeechEnTL(h, m, period){
   const p = period === 'AM' ? ' เอเอ็ม' : (period === 'PM' ? ' พีเอ็ม' : '');
-  return base + p;
+  const digital = enDigitalTL(h, m) + p;   // "ทรี ฟิฟทีน พีเอ็ม"
+  const word = enWordTL(h, m);              // "ควอเตอร์ พาสต์ ทรี"
+  return word ? (digital + ' หรือ ' + word) : digital;   // join both ways with "หรือ"
 }
 
 /* what the voice should say for the current clock time (Thai voice either way) */
