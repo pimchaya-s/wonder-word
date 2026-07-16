@@ -1227,7 +1227,7 @@ function chooseClock(opt, btn){
     clockScore++;
     document.getElementById('clockScore').textContent = clockScore;
     document.getElementById('clockSpeech').textContent =
-      clockLang === 'en' ? 'Good! 🎉' : 'เยี่ยมไปเลยค่ะ! 🎉';
+      clockLang === 'en' ? 'ถูกต้องค่ะ 🎉' : 'เยี่ยมไปเลยค่ะ! 🎉';
     if(clockLang === 'th'){ playSuccess(); speakSequence([praise, clockSpokenTime()], 'th'); }
     launchConfetti();
     setTimeout(()=>{
@@ -1237,9 +1237,12 @@ function chooseClock(opt, btn){
   } else {
     btn.classList.add('is-wrong');
     btn.disabled = true;
-    if(clockLang === 'th') playTone(180,0.25);
-    // reveal the answer with a Thai explanation (both TH and EN versions)
-    revealClockAnswer();
+    if(clockLang === 'th'){
+      playTone(180,0.25);
+      revealClockAnswer();   // Thai: reveal the answer with a spoken explanation
+    } else {
+      document.getElementById('clockSpeech').textContent = 'ลองใหม่อีกครั้ง 💪';
+    }
   }
 }
 
