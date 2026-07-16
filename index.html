@@ -177,14 +177,14 @@
 
   /* ---- Princess clock game ---- */
   .clock-wrap{ width:100%; max-width:520px; display:flex; flex-direction:column; align-items:center; }
-  .clock-scene{ position:relative; width:min(300px,80vw); margin:4px 0 8px; padding-bottom:26px; }
+  .clock-scene{ position:relative; width:min(300px,80vw); margin:4px 0 8px; padding-top:52px; padding-bottom:26px; }
   .princess-clock{ width:100%; display:block; position:relative; z-index:2; filter:drop-shadow(0 4px 5px rgba(180,140,255,0.25)); }
   .princess-clock .hand{ transform-box:fill-box; transform-origin:center bottom; transition:transform .5s cubic-bezier(.34,1.56,.64,1); }
   .sky-body{
-    position:absolute; left:50%; top:18%; transform:translate(-50%,-50%);
-    font-size:clamp(30px,9vw,42px); line-height:1; z-index:3; pointer-events:none;
+    position:absolute; left:50%; top:8%; transform:translate(-50%,-50%);
+    font-size:clamp(24px,7vw,34px); line-height:1; z-index:3; pointer-events:none;
     display:flex; align-items:center; justify-content:center; border-radius:50%;
-    width:1.7em; height:1.7em;
+    width:1.5em; height:1.5em;
     transition:left .7s ease, top .7s ease; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));
   }
   .sky-body.sun{ background:radial-gradient(circle, rgba(255,214,90,0.65), rgba(255,214,90,0) 68%); }
@@ -376,7 +376,10 @@
     </svg>
     </div>
     <div class="speech" id="clockSpeech">นาฬิกาบอกเวลาอะไรจ๊ะ?</div>
-    <button class="bigbtn listen-btn" id="clockListenBtn" style="margin-bottom:12px;">🔊 ฟังอีกครั้ง</button>
+    <div class="controls-row" style="margin-bottom:12px;">
+      <button class="bigbtn listen-btn" id="clockListenBtn">🔊 ฟังอีกครั้ง</button>
+      <button class="bigbtn" id="clockHintBtn" style="background:linear-gradient(135deg,#FFB84D,#FF9A5A);">อะไรเอ่ย? 🤔</button>
+    </div>
     <div class="clock-choices" id="clockChoices"></div>
   </div>
 </div>
@@ -507,7 +510,14 @@ function init(){
   document.getElementById('clockThaiBtn').onclick = ()=> startClockGame('th');
   document.getElementById('clockEngBtn').onclick = ()=> startClockGame('en');
   document.getElementById('clockBackBtn').onclick = ()=> showScreen('screen-mascot');
-  document.getElementById('clockListenBtn').onclick = ()=> speakLang(timeSpeech(clockTarget.h, clockTarget.m, clockLang, clockPeriod), clockLang);
+  document.getElementById('clockListenBtn').onclick = ()=> speakLang(timeLabel(clockTarget.h, clockTarget.m, 'th'), 'th');
+  document.getElementById('clockHintBtn').onclick = revealClockAnswer;
+
+  // warm up speech voices (they load asynchronously on some browsers)
+  if('speechSynthesis' in window){
+    speechSynthesis.getVoices();
+    speechSynthesis.onvoiceschanged = ()=> speechSynthesis.getVoices();
+  }
 
   buildGrid();
 }
@@ -1096,7 +1106,7 @@ function updateClockSky(h, m){
 
   const leftPct = 12 + prog * 76;                 // east (left) → west (right)
   const elevation = Math.sin(prog * Math.PI);     // 0 at horizon, 1 at peak (noon/midnight)
-  const topPct = 42 - elevation * 34;             // higher in the sky at the peak
+  const topPct = 10 - elevation * 6;              // stays in the sky, above the princess' head
 
   const skyEl = document.getElementById('skyBody');
   skyEl.textContent = body;
@@ -1154,23 +1164,22 @@ function renderClockChoices(){
     box.appendChild(btn);
   });
 
-  // read the time aloud when a new level appears
-  setTimeout(()=> speakLang(timeSpeech(clockTarget.h, clockTarget.m, clockLang, clockPeriod), clockLang), 400);
+  // read the time aloud (in Thai) when a new level appears
+  setTimeout(()=> speakLang(timeLabel(clockTarget.h, clockTarget.m, 'th'), 'th'), 400);
 }
 
 function chooseClock(opt, btn){
   const isCorrect = opt.h === clockTarget.h && opt.m === clockTarget.m;
-  const timeText = timeSpeech(clockTarget.h, clockTarget.m, clockLang, clockPeriod);
+  // always narrate in Thai (the working voice) so it sounds like the Thai version
+  const timeThai = timeLabel(clockTarget.h, clockTarget.m, 'th');
   if(isCorrect){
     btn.classList.add('is-right');
     document.querySelectorAll('.clock-choice').forEach(b=> b.disabled = true);
     clockScore++;
     document.getElementById('clockScore').textContent = clockScore;
-    document.getElementById('clockSpeech').textContent =
-      clockLang === 'th' ? 'เยี่ยมไปเลยค่ะ! 🎉' : 'Good! 🎉';
+    document.getElementById('clockSpeech').textContent = 'เยี่ยมไปเลยค่ะ! 🎉';
     playSuccess();
-    // say the praise word, then read the time aloud
-    speakSequence([clockPraise(clockLang), timeText], clockLang);
+    speakSequence(['เยี่ยมไปเลยค่ะ', timeThai], 'th');
     launchConfetti();
     setTimeout(()=>{
       if(clockLevel >= 15){ finishClockGame(); }
@@ -1180,11 +1189,27 @@ function chooseClock(opt, btn){
     btn.classList.add('is-wrong');
     btn.disabled = true;
     playTone(180,0.25);
-    document.getElementById('clockSpeech').textContent =
-      clockLang === 'th' ? 'ยังไม่ถูกนะ ลองอีกครั้ง! 💪' : 'Not yet, try again! 💪';
-    // still read the correct time so the child hears it
-    speakLang(timeText, clockLang);
+    // reveal the answer with a Thai explanation (both TH and EN versions)
+    revealClockAnswer();
   }
+}
+
+/* Thai explanation of the current time — used for the "อะไรเอ่ย" hint and wrong answers */
+function clockExplainTH(){
+  const h = clockTarget.h, m = clockTarget.m;
+  const minPoint = m === 0 ? 12 : m / 5;   // number the long hand points to
+  let shortHand;
+  if(m === 0) shortHand = 'เข็มสั้น (สีชมพู) ชี้ที่เลข ' + h;
+  else if(m < 30) shortHand = 'เข็มสั้น (สีชมพู) เลยเลข ' + h + ' มานิดหนึ่ง';
+  else shortHand = 'เข็มสั้น (สีชมพู) อยู่ระหว่างเลข ' + h + ' กับ ' + (h === 12 ? 1 : h+1);
+  const longHand = 'เข็มยาว (สีม่วง) ชี้ที่เลข ' + minPoint;
+  return shortHand + ' ' + longHand + ' อ่านว่า ' + timeLabel(h, m, 'th') + ' จ้ะ';
+}
+
+function revealClockAnswer(){
+  const text = clockExplainTH();
+  document.getElementById('clockSpeech').textContent = '💡 ' + text;
+  speakLang(text, 'th');
 }
 
 function finishClockGame(){
@@ -1203,6 +1228,8 @@ function ensureAudio(){
   if(!audioCtx){
     try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){}
   }
+  // some browsers start the context suspended until a user gesture
+  if(audioCtx && audioCtx.state === 'suspended'){ try{ audioCtx.resume(); }catch(e){} }
 }
 function playTone(freq, dur){
   ensureAudio();
@@ -1226,6 +1253,15 @@ function speakWord(){
 function speakText(text){
   speakLang(text, 'th');
 }
+function pickVoice(lang){
+  const voices = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+  if(!voices.length) return null;
+  const pref = lang === 'en' ? 'en' : 'th';
+  let v = voices.find(x=> (x.lang||'').toLowerCase().startsWith(pref));
+  // if the device has no voice for that language, fall back to the Thai voice
+  if(!v) v = voices.find(x=> (x.lang||'').toLowerCase().startsWith('th'));
+  return v || voices[0] || null;
+}
 function speakLang(text, lang){
   speakSequence([text], lang);
 }
@@ -1233,17 +1269,15 @@ function speakSequence(texts, lang){
   if(!('speechSynthesis' in window)) return;
   try{
     speechSynthesis.cancel();
-    // Chrome can drop an utterance queued in the same tick as cancel();
-    // a tiny delay makes speech reliable after a click.
-    setTimeout(()=>{
-      texts.forEach(t=>{
-        const u = new SpeechSynthesisUtterance(t);
-        u.lang = lang === 'en' ? 'en-US' : 'th-TH';
-        u.rate = lang === 'en' ? 0.85 : 0.85;
-        u.pitch = 1.15;
-        speechSynthesis.speak(u);
-      });
-    }, 60);
+    texts.forEach(t=>{
+      const u = new SpeechSynthesisUtterance(t);
+      const v = pickVoice(lang);
+      if(v){ u.voice = v; u.lang = v.lang; }
+      else { u.lang = lang === 'en' ? 'en-US' : 'th-TH'; }
+      u.rate = 0.9;
+      u.pitch = 1.2;
+      speechSynthesis.speak(u);
+    });
   }catch(e){}
 }
 
