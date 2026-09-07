@@ -481,6 +481,100 @@
   ]}
   ];
 
+  /* ===== Math question banks (200-300+ generated questions) =====
+     Each math topic gets a large "pool". Every time a topic is opened,
+     10 questions are picked at random from its pool, so the set is
+     different on each play. */
+  (function buildMathPools(){
+    var math = SUBJECTS.filter(function(s){ return s.id==='math'; })[0];
+    if(!math) return;
+
+    // Build a multiple-choice item with the correct answer shuffled among choices.
+    function QG(q, correct, distractors, note){
+      var opts = [String(correct)];
+      distractors.forEach(function(d){ var s=String(d); if(opts.indexOf(s)===-1) opts.push(s); });
+      // shuffle choices so the answer isn't always in the same spot
+      for(var i=opts.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=opts[i]; opts[i]=opts[j]; opts[j]=t; }
+      return { q:q, choices:opts, a:opts.indexOf(String(correct)), note:note||'' };
+    }
+    // Distinct plausible wrong answers near a number (never below `min`).
+    function near(ans, count, min){
+      min = (min===undefined)?0:min;
+      var seen={}, out=[], deltas=[1,-1,2,-2,3,-3,4,-4,5,-5,10,-10];
+      seen[ans]=1;
+      for(var k=0;k<deltas.length && out.length<count;k++){
+        var v = ans + deltas[k];
+        if(v>=min && !seen[v]){ seen[v]=1; out.push(v); }
+      }
+      return out;
+    }
+    function trimShuffle(arr, n){
+      var a = arr.slice();
+      for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+      return a.slice(0, n);
+    }
+
+    var EMOJI = ['🍎','🐟','⭐','🍌','🚗','🐱','🌸','🎈','🍇','🐧','🐝','🌻'];
+    var WORDS = {0:'zero',1:'one',2:'two',3:'three',4:'four',5:'five',6:'six',7:'seven',8:'eight',9:'nine',10:'ten',
+      11:'eleven',12:'twelve',13:'thirteen',14:'fourteen',15:'fifteen',16:'sixteen',17:'seventeen',18:'eighteen',19:'nineteen',20:'twenty'};
+    var ORD = {1:'1st',2:'2nd',3:'3rd',4:'4th',5:'5th',6:'6th',7:'7th',8:'8th',9:'9th',10:'10th'};
+
+    // ---- Addition & Subtraction within 20 ----
+    var addsub = [];
+    for(var a=1;a<=15;a++){
+      for(var b=1;b<=15;b++){
+        if(a+b<=20){ addsub.push(QG(a+' + '+b+' = ?', a+b, near(a+b,2,0), a+' + '+b+' = '+(a+b))); }
+      }
+    }
+    for(var x=2;x<=20;x++){
+      for(var y=1;y<x;y++){
+        addsub.push(QG(x+' − '+y+' = ?', x-y, near(x-y,2,0), x+' − '+y+' = '+(x-y)));
+      }
+    }
+
+    // ---- Comparing & Numbers (11-20) ----
+    var compare = [];
+    for(var p=1;p<=20;p++){
+      for(var q2=1;q2<=20;q2++){
+        var sign = p>q2 ? '>' : (p<q2 ? '<' : '=');
+        compare.push(QG(p+' ___ '+q2+' — which sign is correct?', sign, ['>','<','='].filter(function(s){return s!==sign;}),
+          p+' '+sign+' '+q2));
+      }
+    }
+    for(var m=2;m<=19;m++){
+      compare.push(QG((m-1)+', ___, '+(m+1)+' — what number is missing?', m, near(m,2,0), 'Counting on: '+(m-1)+', '+m+', '+(m+1)));
+    }
+    for(var w=1;w<=20;w++){
+      compare.push(QG('Which numeral matches "'+WORDS[w]+'"?', w, near(w,2,0), WORDS[w]+' = '+w));
+    }
+
+    // ---- Ordinal Numbers & Counting ----
+    var ordinal = [];
+    for(var n=2;n<=12;n++){
+      var e = EMOJI[n % EMOJI.length];
+      ordinal.push(QG(new Array(n+1).join(e)+' — how many?', n, near(n,2,1), 'Count them: '+n));
+    }
+    // more counting with different emojis
+    EMOJI.forEach(function(em, idx){
+      var cnt = 3 + (idx % 8); // 3..10
+      ordinal.push(QG(new Array(cnt+1).join(em)+' — how many?', cnt, near(cnt,2,1), 'Count them: '+cnt));
+    });
+    for(var o=2;o<=9;o++){
+      ordinal.push(QG(ORD[o-1]+', '+ORD[o]+', ___ — what comes next?', ORD[o+1],
+        [ORD[o], ORD[Math.min(10,o+2)]].filter(function(v){return v!==ORD[o+1];}),
+        'After '+ORD[o]+' comes '+ORD[o+1]));
+      ordinal.push(QG('Does '+ORD[o]+' come before or after '+ORD[o-1]+'?', 'After', ['Before'],
+        o+' is greater than '+(o-1)+', so it comes after'));
+    }
+
+    var pools = {
+      'math-addsub': trimShuffle(addsub, 130),
+      'math-compare': trimShuffle(compare, 90),
+      'math-ordinal': trimShuffle(ordinal, 50)
+    };
+    math.units.forEach(function(u){ if(pools[u.id]) u.pool = pools[u.id]; });
+  })();
+
   var STORAGE_KEY = 'examquest_stars_v2_en';
   var memStore = {};
   function loadStars(){ try{ var raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return memStore; } }
@@ -546,6 +640,8 @@
   }
 
   function openUnit(subj, unit){
+    // If the topic has a large question pool, pick 10 fresh questions each play.
+    if(unit.pool && unit.pool.length){ unit.questions = shuffle(unit.pool).slice(0,10); }
     state.subject = subj; state.unit = unit; state.idx = 0; state.score = 0; state.locked = false; state.matched = 0; state.wrong = 0;
     document.getElementById('chipDot').style.background = subj.color;
     document.getElementById('chipName').textContent = unit.name;
