@@ -130,10 +130,20 @@
 
   /* ---- T&E · บัญชีบ้านเรา (expense tracker) ---- */
   .te-wrap{ max-width:680px; margin:0 auto; }
-  .te-total{ background:linear-gradient(135deg,var(--jungle),var(--sun)); border-radius:22px; padding:18px 22px; color:#fff; margin-bottom:16px; box-shadow:var(--shadow); }
-  .te-total .te-total-label{ font-size:13px; opacity:.92; }
-  .te-total .te-total-amount{ font-family:'Mali',sans-serif; font-size:30px; font-weight:800; font-variant-numeric:tabular-nums; }
-  .te-total .te-total-amount small{ font-size:14px; font-weight:600; opacity:.85; }
+  .te-hero-net{ background:linear-gradient(135deg,var(--jungle),var(--sun)); border-radius:22px; padding:16px 22px; color:#fff; margin-bottom:10px; box-shadow:var(--shadow); transition:background .2s ease; }
+  .te-hero-net.negative{ background:linear-gradient(135deg,#C0392B,#E67E22); }
+  .te-hero-label{ font-size:13px; opacity:.92; }
+  .te-hero-amount{ font-family:'Mali',sans-serif; font-size:28px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .te-hero-amount small{ font-size:14px; font-weight:600; opacity:.85; }
+  .te-mini-stats{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .te-mini{ background:var(--card); border:2px solid var(--line); border-radius:16px; padding:12px 14px; min-height:78px; }
+  .te-mini.income{ border-color:color-mix(in srgb, var(--good) 45%, var(--line)); }
+  .te-mini.expense{ border-color:color-mix(in srgb, var(--bad) 35%, var(--line)); }
+  .mini-top{ display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+  .mini-ic{ font-size:15px; }
+  .mini-label{ font-size:11.5px; color:var(--ink-soft); font-weight:700; }
+  .mini-amt{ font-family:'Mali',sans-serif; font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .mini-edit{ background:none; border:none; color:var(--jungle); font-size:10.5px; font-weight:700; cursor:pointer; padding:0; margin-top:5px; text-decoration:underline; font-family:inherit; }
   .te-month-nav{ display:flex; align-items:center; gap:10px; justify-content:center; margin:2px 0 16px; font-weight:700; }
   .te-month-nav button{ width:30px; height:30px; border-radius:50%; border:2px solid var(--line); background:var(--card); color:var(--ink); font-size:16px; cursor:pointer; font-family:inherit; }
   .te-month-nav button:hover{ border-color:var(--jungle); color:var(--jungle); }
@@ -279,9 +289,16 @@
     </div>
 
     <div class="te-wrap">
-      <div class="te-total">
-        <div class="te-total-label">ยอดรวมรายจ่ายเดือนนี้</div>
-        <div class="te-total-amount"><span id="teTotalAmount">0</span> <small>บาท</small></div>
+      <div class="te-hero-net" id="teNetCard">
+        <div class="te-hero-label">คงเหลือเดือนนี้</div>
+        <div class="te-hero-amount"><span id="teNetValue">0</span> <small>บาท</small></div>
+      </div>
+      <div class="te-mini-stats">
+        <div class="te-mini income" id="teIncomeStat"></div>
+        <div class="te-mini expense">
+          <div class="mini-top"><span class="mini-ic">🧾</span><span class="mini-label">รายจ่าย</span></div>
+          <div class="mini-amt" id="teTotalAmount">0</div>
+        </div>
       </div>
       <div class="te-month-nav">
         <button type="button" id="tePrevMonth" aria-label="เดือนก่อนหน้า">‹</button>
@@ -1090,7 +1107,12 @@
     { key:'shared',    label:'ส่วนรวมในบ้าน',     icon:'🏡', color:'#5FC97A' },
     { key:'tuition',   label:'ค่าเรียน',          icon:'🎓', color:'#6C7CF5' },
     { key:'sri',       label:'ศรี',              icon:'🧹', color:'#C2554D' },
-    { key:'yai',       label:'ยาย',              icon:'👵', color:'#B98B73' }
+    { key:'yai',       label:'ยาย',              icon:'👵', color:'#B98B73' },
+    { key:'car',       label:'รถยนต์',            icon:'🚗', color:'#4A7FC9' },
+    { key:'house',     label:'บ้าน',              icon:'🏠', color:'#8B5E3C' },
+    { key:'aom',       label:'อ๋อม',             icon:'🦋', color:'#D6336C' },
+    { key:'essential', label:'รายจ่ายที่จำเป็น',    icon:'📌', color:'#5C7A99' },
+    { key:'mae',       label:'แม่',               icon:'🌷', color:'#C98A3E' }
   ];
   var TE_CAT_BY_KEY = {};
   TE_CATEGORIES.forEach(function(c){ TE_CAT_BY_KEY[c.key] = c; });
@@ -1099,9 +1121,11 @@
   var TE_THAI_MONTHS_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   var TE_EXP_KEY = 'te_expenses_v1';
   var TE_BUDGET_KEY = 'te_budgets_v1';
+  var TE_INCOME_KEY = 'te_income_v1';
 
   var teExpensesAll = [];
   var teBudgets = {};
+  var teIncomes = {};
   var teSelectedCategory = TE_CATEGORIES[0].key;
   var teFilterCategory = 'all';
   var teCurrentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -1112,8 +1136,12 @@
   function teSaveExpenses(list){ try{ localStorage.setItem(TE_EXP_KEY, JSON.stringify(list)); }catch(e){} }
   function teLoadBudgets(){ try{ var raw = localStorage.getItem(TE_BUDGET_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
   function teSaveBudgets(obj){ try{ localStorage.setItem(TE_BUDGET_KEY, JSON.stringify(obj)); }catch(e){} }
+  function teLoadIncomes(){ try{ var raw = localStorage.getItem(TE_INCOME_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function teSaveIncomes(obj){ try{ localStorage.setItem(TE_INCOME_KEY, JSON.stringify(obj)); }catch(e){} }
 
   function tePad2(n){ return (n<10?'0':'')+n; }
+  function teMonthKey(d){ return d.getFullYear()+'-'+tePad2(d.getMonth()+1); }
+  function teCurrentIncome(){ return teIncomes[teMonthKey(teCurrentMonth)] || 0; }
   function teTodayStr(){ var d=new Date(); return d.getFullYear()+'-'+tePad2(d.getMonth()+1)+'-'+tePad2(d.getDate()); }
   function teMonthRange(d){
     var y=d.getFullYear(), m=d.getMonth();
@@ -1157,6 +1185,50 @@
 
   function teUpdateMonthLabel(){
     document.getElementById('teMonthLabel').textContent = TE_THAI_MONTHS[teCurrentMonth.getMonth()]+' '+(teCurrentMonth.getFullYear()+543);
+  }
+
+  function teRenderIncomeBox(){
+    var el = document.getElementById('teIncomeStat');
+    el.innerHTML = '<div class="mini-top"><span class="mini-ic">💰</span><span class="mini-label">รายรับ</span></div>'+
+      '<div class="mini-amt" id="teIncomeValue">'+teFormatBaht(teCurrentIncome())+'</div>'+
+      '<button type="button" class="mini-edit" id="teIncomeEditBtn">แก้ไขรายรับ</button>';
+    document.getElementById('teIncomeEditBtn').addEventListener('click', teStartEditIncome);
+  }
+
+  function teStartEditIncome(){
+    var el = document.getElementById('teIncomeStat');
+    var current = teCurrentIncome() || '';
+    el.innerHTML = '<div class="mini-top"><span class="mini-ic">💰</span><span class="mini-label">รายรับ</span></div>'+
+      '<input type="number" class="te-budget-input" min="0" step="100" placeholder="รายรับเดือนนี้" id="teIncomeInput" value="'+current+'">';
+    var input = document.getElementById('teIncomeInput');
+    input.focus(); input.select();
+    var saved = false;
+    function save(){
+      if(saved) return; saved = true;
+      var val = parseFloat(input.value);
+      var next = Object.assign({}, teIncomes);
+      var key = teMonthKey(teCurrentMonth);
+      if(!val || val<=0){ delete next[key]; } else { next[key] = val; }
+      teIncomes = next;
+      teSaveIncomes(next);
+      teRenderAll();
+    }
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', function(ev){
+      if(ev.key==='Enter') save();
+      if(ev.key==='Escape'){ saved=true; teRenderAll(); }
+    });
+  }
+
+  function teRenderIncomeExpense(){
+    teRenderIncomeBox();
+    var income = teCurrentIncome();
+    var expense = teMonthTotal();
+    var net = income - expense;
+    document.getElementById('teTotalAmount').textContent = teFormatBaht(expense);
+    document.getElementById('teNetValue').textContent = teFormatBaht(net);
+    var netCard = document.getElementById('teNetCard');
+    netCard.classList.toggle('negative', net<0);
   }
 
   function teRenderCatPicker(){
@@ -1354,7 +1426,7 @@
 
   function teRenderAll(){
     teUpdateMonthLabel();
-    document.getElementById('teTotalAmount').textContent = teFormatBaht(teMonthTotal());
+    teRenderIncomeExpense();
     teRenderMonthHistory();
     teRenderCatGrid();
     teRenderChart();
@@ -1364,6 +1436,7 @@
   function openTE(){
     teExpensesAll = teLoadExpenses();
     teBudgets = teLoadBudgets();
+    teIncomes = teLoadIncomes();
     teRenderAll();
     show('te');
   }
@@ -1442,6 +1515,7 @@
 
   teExpensesAll = teLoadExpenses();
   teBudgets = teLoadBudgets();
+  teIncomes = teLoadIncomes();
   teRenderCatPicker();
   teRenderFilterChips();
   document.getElementById('teDate').value = teTodayStr();
