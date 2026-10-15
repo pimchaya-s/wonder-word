@@ -1,3 +1,4 @@
+<meta charset="UTF-8">
 <title>Quest for the Exam</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Mali:wght@600;700;800&family=Sarabun:wght@400;500;600;700&display=swap');
@@ -126,6 +127,92 @@
   .action-btn.ghost{ color:var(--ink); background:var(--paper2); border:2px solid var(--line); box-shadow:none; }
   .action-btn:active{ transform:translateY(3px); }
   @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+
+  /* ---- T&E · บัญชีบ้านเรา (expense tracker) ---- */
+  .te-wrap{ max-width:680px; margin:0 auto; }
+  .te-hero-net{ background:linear-gradient(135deg,var(--jungle),var(--sun)); border-radius:22px; padding:16px 22px; color:#fff; margin-bottom:10px; box-shadow:var(--shadow); transition:background .2s ease; }
+  .te-hero-net.negative{ background:linear-gradient(135deg,#C0392B,#E67E22); }
+  .te-hero-label{ font-size:13px; opacity:.92; }
+  .te-hero-amount{ font-family:'Mali',sans-serif; font-size:28px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .te-hero-amount small{ font-size:14px; font-weight:600; opacity:.85; }
+  .te-mini-stats{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .te-mini{ background:var(--card); border:2px solid var(--line); border-radius:16px; padding:12px 14px; min-height:78px; }
+  .te-mini.income{ border-color:color-mix(in srgb, var(--good) 45%, var(--line)); }
+  .te-mini.expense{ border-color:color-mix(in srgb, var(--bad) 35%, var(--line)); }
+  .mini-top{ display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+  .mini-ic{ font-size:15px; }
+  .mini-label{ font-size:11.5px; color:var(--ink-soft); font-weight:700; }
+  .mini-amt{ font-family:'Mali',sans-serif; font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .mini-edit{ background:none; border:none; color:var(--jungle); font-size:10.5px; font-weight:700; cursor:pointer; padding:0; margin-top:5px; text-decoration:underline; font-family:inherit; }
+  .te-month-nav{ display:flex; align-items:center; gap:10px; justify-content:center; margin:2px 0 16px; font-weight:700; }
+  .te-month-nav button{ width:30px; height:30px; border-radius:50%; border:2px solid var(--line); background:var(--card); color:var(--ink); font-size:16px; cursor:pointer; font-family:inherit; }
+  .te-month-nav button:hover{ border-color:var(--jungle); color:var(--jungle); }
+  .te-month-history{ display:flex; gap:8px; overflow-x:auto; padding:2px 2px 12px; margin-bottom:2px; -webkit-overflow-scrolling:touch; }
+  .te-month-history::-webkit-scrollbar{ height:5px; }
+  .te-month-chip{ flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:2px; background:var(--card); border:2px solid var(--line); border-radius:14px; padding:8px 13px; cursor:pointer; font-family:inherit; min-width:66px; }
+  .te-month-chip .mn{ font-size:11px; color:var(--ink-soft); font-weight:700; }
+  .te-month-chip .amt{ font-size:13px; font-weight:800; font-variant-numeric:tabular-nums; color:var(--ink); }
+  .te-month-chip.active{ border-color:var(--jungle); background:color-mix(in srgb, var(--jungle) 14%, var(--card)); }
+  .te-month-chip.active .amt{ color:var(--jungle); }
+  .te-card{ background:var(--card); border:2px solid var(--line); border-radius:20px; padding:18px; box-shadow:var(--shadow); margin-bottom:16px; }
+  .te-card h3{ margin:0 0 12px; font-size:15px; font-family:'Mali',sans-serif; }
+  .te-pill-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .te-pill{ --cat:#999; display:flex; align-items:center; gap:6px; border:2px solid color-mix(in srgb, var(--cat) 40%, var(--line)); background:var(--paper2); color:var(--ink); border-radius:999px; padding:6px 12px 6px 6px; font-size:12.5px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .te-pill .ic{ width:24px; height:24px; border-radius:50%; background:var(--cat); display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .te-pill.active{ background:color-mix(in srgb, var(--cat) 22%, var(--paper2)); border-color:var(--cat); }
+  .te-form{ display:flex; flex-direction:column; gap:12px; }
+  .te-field label{ display:block; font-size:12px; color:var(--ink-soft); margin-bottom:5px; font-weight:600; }
+  .te-field input{ width:100%; font-family:inherit; font-size:15px; border:2px solid var(--line); background:var(--paper2); color:var(--ink); border-radius:12px; padding:10px 12px; }
+  .te-field input:focus{ outline:none; border-color:var(--jungle); }
+  .te-amount-wrap{ position:relative; }
+  .te-amount-wrap .baht{ position:absolute; left:13px; top:50%; transform:translateY(-50%); font-weight:800; color:var(--jungle); }
+  .te-amount-wrap input{ padding-left:30px; font-size:20px; font-weight:800; }
+  .te-submit{ font-family:inherit; font-weight:800; font-size:15px; color:#fff; border:none; border-radius:14px; padding:12px; cursor:pointer; background:linear-gradient(135deg,var(--jungle),color-mix(in srgb, var(--jungle) 60%, var(--sun))); box-shadow:0 5px 0 rgba(0,0,0,0.15); }
+  .te-submit:active{ transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,0.15); }
+  .te-submit:disabled{ opacity:.6; }
+  .te-cat-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; }
+  .te-cat-card{ --cat:#999; border-radius:16px; padding:12px; cursor:pointer; background:color-mix(in srgb, var(--cat) 10%, var(--card)); border:2px solid color-mix(in srgb, var(--cat) 25%, var(--line)); display:flex; flex-direction:column; gap:7px; }
+  .te-cat-card.selected{ border-color:var(--cat); }
+  .te-cat-card .top-row{ display:flex; align-items:center; gap:8px; }
+  .te-cat-card .ic-circle{ width:32px; height:32px; border-radius:50%; background:var(--cat); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+  .te-cat-card .name{ font-size:12px; font-weight:700; line-height:1.25; }
+  .te-cat-card .amt{ font-family:'Mali',sans-serif; font-size:17px; font-weight:800; }
+  .te-budget-track{ height:6px; border-radius:99px; background:var(--paper2); overflow:hidden; }
+  .te-budget-fill{ height:100%; border-radius:99px; background:var(--cat); }
+  .te-budget-fill.over{ background:var(--bad); }
+  .te-budget-text{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--ink-soft); }
+  .te-budget-text button{ background:none; border:none; color:var(--jungle); font-weight:700; font-size:10.5px; cursor:pointer; padding:0; text-decoration:underline; font-family:inherit; }
+  .te-budget-input{ width:100%; font-size:12px; border:1.5px solid var(--jungle); border-radius:8px; padding:3px 6px; background:var(--card); color:var(--ink); font-family:inherit; }
+  .te-chart-row{ display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+  .te-donut-box{ position:relative; width:150px; height:150px; flex-shrink:0; }
+  .te-donut-box svg{ width:100%; height:100%; }
+  .te-chart-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; pointer-events:none; }
+  .te-chart-center .cc-amt{ font-family:'Mali',sans-serif; font-size:17px; font-weight:800; }
+  .te-chart-center .cc-label{ font-size:10px; color:var(--ink-soft); }
+  .te-legend{ flex:1; min-width:170px; display:flex; flex-direction:column; gap:7px; }
+  .te-legend-row{ display:flex; align-items:center; gap:7px; font-size:12px; }
+  .te-legend-row .dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .te-legend-row .lg-name{ flex:1; }
+  .te-legend-row .lg-pct{ color:var(--ink-soft); font-family:'Mali',sans-serif; }
+  .te-list-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .te-filter-chips{ display:flex; gap:6px; flex-wrap:wrap; }
+  .te-chip{ --cat:var(--ink-soft); border:1.5px solid color-mix(in srgb, var(--cat) 40%, var(--line)); background:var(--paper2); border-radius:999px; padding:5px 11px; font-size:11px; cursor:pointer; color:var(--ink-soft); font-family:inherit; }
+  .te-chip.active{ background:color-mix(in srgb, var(--cat) 22%, var(--paper2)); border-color:var(--cat); color:var(--ink); font-weight:700; }
+  .te-date-heading{ font-size:11.5px; color:var(--ink-soft); margin:0 0 8px; padding-bottom:6px; border-bottom:1px dashed var(--line); display:flex; justify-content:space-between; }
+  .te-date-group{ margin-bottom:14px; } .te-date-group:last-child{ margin-bottom:0; }
+  .te-txn-row{ display:flex; align-items:center; gap:10px; padding:8px 0; }
+  .te-txn-row .ic-circle{ width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; background:var(--cat-color,#999); flex-shrink:0; }
+  .te-txn-row .mid{ flex:1; min-width:0; }
+  .te-txn-row .cat-name{ font-size:12px; font-weight:700; }
+  .te-txn-row .note{ font-size:11px; color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .te-txn-row .amount{ font-family:'Mali',sans-serif; font-weight:800; font-size:15px; white-space:nowrap; }
+  .te-txn-row .del{ border:none; background:var(--paper2); color:var(--ink-soft); width:26px; height:26px; border-radius:50%; cursor:pointer; font-size:12px; flex-shrink:0; }
+  .te-txn-row .del.confirm{ background:var(--bad); color:#fff; width:auto; padding:0 10px; border-radius:14px; font-size:10px; font-weight:700; }
+  .te-txn-row .del:hover{ background:var(--bad); color:#fff; }
+  .te-empty{ text-align:center; color:var(--ink-soft); font-size:13px; padding:20px 8px; }
+  .te-note-row{ display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; font-size:11.5px; color:var(--ink-soft); margin-top:4px; }
+  .te-io-btns{ display:flex; gap:8px; }
+  .te-io-btns button{ background:none; border:none; color:var(--jungle); font-weight:700; font-size:11.5px; cursor:pointer; text-decoration:underline; padding:0; font-family:inherit; }
 </style>
 
 <div class="wrap">
@@ -192,6 +279,86 @@
       <button class="action-btn primary" id="retryBtn">Try Again</button>
       <button class="action-btn ghost" id="toUnitsBtn">Other Topics</button>
       <button class="action-btn ghost" id="toMapBtn">Back to Map</button>
+    </div>
+  </section>
+
+  <section id="te" class="screenBlock">
+    <div class="quiz-top">
+      <button class="back-btn" id="teBackBtn">← Back to Map</button>
+      <div class="subject-chip"><span class="dot" style="background:#FF8B5E"></span><span>T&E · บัญชีบ้านเรา</span></div>
+    </div>
+
+    <div class="te-wrap">
+      <div class="te-hero-net" id="teNetCard">
+        <div class="te-hero-label">คงเหลือเดือนนี้</div>
+        <div class="te-hero-amount"><span id="teNetValue">0</span> <small>บาท</small></div>
+      </div>
+      <div class="te-mini-stats">
+        <div class="te-mini income" id="teIncomeStat"></div>
+        <div class="te-mini expense">
+          <div class="mini-top"><span class="mini-ic">🧾</span><span class="mini-label">รายจ่าย</span></div>
+          <div class="mini-amt" id="teTotalAmount">0</div>
+        </div>
+      </div>
+      <div class="te-month-nav">
+        <button type="button" id="tePrevMonth" aria-label="เดือนก่อนหน้า">‹</button>
+        <span id="teMonthLabel">—</span>
+        <button type="button" id="teNextMonth" aria-label="เดือนถัดไป">›</button>
+      </div>
+      <div class="te-month-history" id="teMonthHistory"></div>
+
+      <div class="te-card">
+        <h3>➕ เพิ่มรายจ่าย</h3>
+        <div class="te-pill-row" id="teCatPicker"></div>
+        <form id="teAddForm" class="te-form">
+          <div class="te-field">
+            <label for="teAmount">จำนวนเงิน</label>
+            <div class="te-amount-wrap"><span class="baht">฿</span><input id="teAmount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0" required></div>
+          </div>
+          <div class="te-field">
+            <label for="teDate">วันที่</label>
+            <input id="teDate" type="date" required>
+          </div>
+          <div class="te-field">
+            <label for="teNote">รายละเอียด (ถ้ามี)</label>
+            <input id="teNote" type="text" placeholder="เช่น ค่าข้าวกลางวัน, ผงซักฟอก">
+          </div>
+          <button type="submit" id="teSubmitBtn" class="te-submit">บันทึกรายจ่าย</button>
+        </form>
+      </div>
+
+      <div class="te-card">
+        <h3>📊 สรุปตามหมวด</h3>
+        <div class="te-cat-grid" id="teCatGrid"></div>
+      </div>
+
+      <div class="te-card">
+        <h3>🥧 สัดส่วนรายจ่าย</h3>
+        <div class="te-chart-row">
+          <div class="te-donut-box">
+            <svg id="teDonutSvg" viewBox="0 0 200 200"></svg>
+            <div class="te-chart-center"><span class="cc-amt" id="teCcAmt">0</span><span class="cc-label">บาท</span></div>
+          </div>
+          <div class="te-legend" id="teLegend"></div>
+        </div>
+      </div>
+
+      <div class="te-card">
+        <div class="te-list-head">
+          <h3 style="margin:0">🧾 รายการทั้งหมด</h3>
+          <div class="te-filter-chips" id="teFilterChips"></div>
+        </div>
+        <div id="teTxnList"></div>
+        <p class="te-empty" id="teEmptyState" hidden>ยังไม่มีรายจ่ายเดือนนี้ เริ่มบันทึกกันเลย! 🌱</p>
+        <div class="te-note-row">
+          <span>💾 ข้อมูลเก็บไว้ในเบราว์เซอร์นี้เท่านั้น</span>
+          <span class="te-io-btns">
+            <button type="button" id="teExportBtn">ส่งออกข้อมูล</button>
+            <button type="button" id="teImportBtn">นำเข้าข้อมูล</button>
+          </span>
+        </div>
+        <input type="file" id="teImportFile" accept="application/json" hidden>
+      </div>
     </div>
   </section>
 </div>
@@ -686,7 +853,7 @@
 
   var state = { subject:null, unit:null, idx:0, score:0, locked:false, matched:0, wrong:0 };
 
-  var screens = { map:document.getElementById('map'), units:document.getElementById('units'), quiz:document.getElementById('quiz'), result:document.getElementById('result') };
+  var screens = { map:document.getElementById('map'), units:document.getElementById('units'), quiz:document.getElementById('quiz'), result:document.getElementById('result'), te:document.getElementById('te') };
   function show(name){ Object.keys(screens).forEach(function(k){ screens[k].classList.toggle('active', k===name); }); }
 
   function starsFor(score){ if(score>=9) return 3; if(score>=7) return 2; if(score>=5) return 1; return 0; }
@@ -711,6 +878,17 @@
       btn.addEventListener('click', function(){ openSubject(subj.id); });
       islandsEl.appendChild(btn);
     });
+
+    var teBtn = document.createElement('button');
+    teBtn.className = 'island';
+    teBtn.innerHTML =
+      '<span class="isle-icon" style="background:#FF8B5E">🐷</span>'+
+      '<span class="isle-name">T&E</span>'+
+      '<span class="isle-sub">บัญชีบ้านเรา</span>'+
+      '<span class="isle-stars">💰</span>';
+    teBtn.addEventListener('click', openTE);
+    islandsEl.appendChild(teBtn);
+
     var maxStars = TOTAL_UNITS*3;
     document.getElementById('totalStarsText').textContent = total+' / '+maxStars+' stars';
     document.getElementById('totalFill').style.width = Math.round(100*total/maxStars)+'%';
@@ -917,6 +1095,428 @@
   document.getElementById('toMapBtn').addEventListener('click', renderMap);
   document.getElementById('toUnitsBtn').addEventListener('click', function(){ openSubject(state.subject.id); });
   document.getElementById('retryBtn').addEventListener('click', function(){ openUnit(state.subject, state.unit); });
+  document.getElementById('teBackBtn').addEventListener('click', renderMap);
+
+  /* ================= T&E · บัญชีบ้านเรา (expense tracker) ================= */
+  var TE_CATEGORIES = [
+    { key:'food',      label:'อาหาร',            icon:'🍜', color:'#FF8B5E' },
+    { key:'household', label:'ของใช้ในบ้าน',      icon:'🧴', color:'#3FBFB0' },
+    { key:'erin',      label:'เอริน',            icon:'🎀', color:'#FF6B9D' },
+    { key:'irin',      label:'ไอริน',            icon:'🦄', color:'#9B8AFB' },
+    { key:'shared',    label:'ส่วนรวมในบ้าน',     icon:'🏡', color:'#5FC97A' },
+    { key:'tuition',   label:'ค่าเรียน',          icon:'🎓', color:'#6C7CF5' },
+    { key:'sri',       label:'ศรี',              icon:'🧹', color:'#C2554D' },
+    { key:'yai',       label:'ยาย',              icon:'👵', color:'#B98B73' },
+    { key:'car',       label:'รถยนต์',            icon:'🚗', color:'#4A7FC9' },
+    { key:'house',     label:'บ้าน',              icon:'🏠', color:'#8B5E3C' },
+    { key:'aom',       label:'อ๋อม',             icon:'🦋', color:'#D6336C' },
+    { key:'mae',       label:'แม่',               icon:'🌷', color:'#C98A3E' }
+  ];
+  var TE_CAT_BY_KEY = {};
+  TE_CATEGORIES.forEach(function(c){ TE_CAT_BY_KEY[c.key] = c; });
+
+  var TE_THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  var TE_THAI_MONTHS_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var TE_EXP_KEY = 'te_expenses_v1';
+  var TE_BUDGET_KEY = 'te_budgets_v1';
+  var TE_INCOME_KEY = 'te_income_v1';
+
+  var teExpensesAll = [];
+  var teBudgets = {};
+  var teIncomes = {};
+  var teSelectedCategory = TE_CATEGORIES[0].key;
+  var teFilterCategory = 'all';
+  var teCurrentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  var tePendingDeleteId = null;
+  var tePendingDeleteTimer = null;
+
+  function teLoadExpenses(){ try{ var raw = localStorage.getItem(TE_EXP_KEY); return raw ? JSON.parse(raw) : []; }catch(e){ return []; } }
+  function teSaveExpenses(list){ try{ localStorage.setItem(TE_EXP_KEY, JSON.stringify(list)); }catch(e){} }
+  function teLoadBudgets(){ try{ var raw = localStorage.getItem(TE_BUDGET_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function teSaveBudgets(obj){ try{ localStorage.setItem(TE_BUDGET_KEY, JSON.stringify(obj)); }catch(e){} }
+  function teLoadIncomes(){ try{ var raw = localStorage.getItem(TE_INCOME_KEY); return raw ? JSON.parse(raw) : {}; }catch(e){ return {}; } }
+  function teSaveIncomes(obj){ try{ localStorage.setItem(TE_INCOME_KEY, JSON.stringify(obj)); }catch(e){} }
+
+  function tePad2(n){ return (n<10?'0':'')+n; }
+  function teMonthKey(d){ return d.getFullYear()+'-'+tePad2(d.getMonth()+1); }
+  function teCurrentIncome(){ return teIncomes[teMonthKey(teCurrentMonth)] || 0; }
+  function teTodayStr(){ var d=new Date(); return d.getFullYear()+'-'+tePad2(d.getMonth()+1)+'-'+tePad2(d.getDate()); }
+  function teMonthRange(d){
+    var y=d.getFullYear(), m=d.getMonth();
+    var start = y+'-'+tePad2(m+1)+'-01';
+    var lastDay = new Date(y, m+1, 0).getDate();
+    var end = y+'-'+tePad2(m+1)+'-'+tePad2(lastDay);
+    return { start:start, end:end };
+  }
+  function teFormatBaht(n){ n = Number(n)||0; return n.toLocaleString('th-TH', { maximumFractionDigits: n % 1 === 0 ? 0 : 2 }); }
+  function teFormatDateThai(dateStr){
+    var p = dateStr.split('-').map(Number);
+    return p[2]+' '+TE_THAI_MONTHS_SHORT[p[1]-1]+' '+(p[0]+543);
+  }
+  function teRenderMonthHistory(){
+    var el = document.getElementById('teMonthHistory');
+    el.innerHTML = '';
+    var i, d, range, total, isActive, btn;
+    for(i=5; i>=0; i--){
+      d = new Date(teCurrentMonth.getFullYear(), teCurrentMonth.getMonth()-i, 1);
+      range = teMonthRange(d);
+      total = teExpensesAll.filter(function(e){ return e.date>=range.start && e.date<=range.end; })
+        .reduce(function(s,e){ return s+(Number(e.amount)||0); }, 0);
+      isActive = (d.getFullYear()===teCurrentMonth.getFullYear() && d.getMonth()===teCurrentMonth.getMonth());
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'te-month-chip'+(isActive?' active':'');
+      btn.innerHTML = '<span class="mn">'+TE_THAI_MONTHS_SHORT[d.getMonth()]+' '+String(d.getFullYear()+543).slice(-2)+'</span><span class="amt">'+teFormatBaht(total)+'</span>';
+      (function(targetMonth){
+        btn.addEventListener('click', function(){ teCurrentMonth = targetMonth; teRenderAll(); });
+      })(d);
+      el.appendChild(btn);
+    }
+    el.scrollLeft = el.scrollWidth;
+  }
+  function teMonthExpenses(){
+    var range = teMonthRange(teCurrentMonth);
+    return teExpensesAll.filter(function(e){ return e.date >= range.start && e.date <= range.end; });
+  }
+  function teMonthTotal(){ return teMonthExpenses().reduce(function(s,e){ return s+(Number(e.amount)||0); },0); }
+  function teCategorySpent(key){ return teMonthExpenses().filter(function(e){ return e.category===key; }).reduce(function(s,e){ return s+(Number(e.amount)||0); },0); }
+
+  function teUpdateMonthLabel(){
+    document.getElementById('teMonthLabel').textContent = TE_THAI_MONTHS[teCurrentMonth.getMonth()]+' '+(teCurrentMonth.getFullYear()+543);
+  }
+
+  function teRenderIncomeBox(){
+    var el = document.getElementById('teIncomeStat');
+    el.innerHTML = '<div class="mini-top"><span class="mini-ic">💰</span><span class="mini-label">รายรับ</span></div>'+
+      '<div class="mini-amt" id="teIncomeValue">'+teFormatBaht(teCurrentIncome())+'</div>'+
+      '<button type="button" class="mini-edit" id="teIncomeEditBtn">แก้ไขรายรับ</button>';
+    document.getElementById('teIncomeEditBtn').addEventListener('click', teStartEditIncome);
+  }
+
+  function teStartEditIncome(){
+    var el = document.getElementById('teIncomeStat');
+    var current = teCurrentIncome() || '';
+    el.innerHTML = '<div class="mini-top"><span class="mini-ic">💰</span><span class="mini-label">รายรับ</span></div>'+
+      '<input type="number" class="te-budget-input" min="0" step="100" placeholder="รายรับเดือนนี้" id="teIncomeInput" value="'+current+'">';
+    var input = document.getElementById('teIncomeInput');
+    input.focus(); input.select();
+    var saved = false;
+    function save(){
+      if(saved) return; saved = true;
+      var val = parseFloat(input.value);
+      var next = Object.assign({}, teIncomes);
+      var key = teMonthKey(teCurrentMonth);
+      if(!val || val<=0){ delete next[key]; } else { next[key] = val; }
+      teIncomes = next;
+      teSaveIncomes(next);
+      teRenderAll();
+    }
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', function(ev){
+      if(ev.key==='Enter') save();
+      if(ev.key==='Escape'){ saved=true; teRenderAll(); }
+    });
+  }
+
+  function teRenderIncomeExpense(){
+    teRenderIncomeBox();
+    var income = teCurrentIncome();
+    var expense = teMonthTotal();
+    var net = income - expense;
+    document.getElementById('teTotalAmount').textContent = teFormatBaht(expense);
+    document.getElementById('teNetValue').textContent = teFormatBaht(net);
+    var netCard = document.getElementById('teNetCard');
+    netCard.classList.toggle('negative', net<0);
+  }
+
+  function teRenderCatPicker(){
+    var el = document.getElementById('teCatPicker');
+    el.innerHTML = '';
+    TE_CATEGORIES.forEach(function(c){
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'te-pill'+(c.key===teSelectedCategory?' active':'');
+      btn.style.setProperty('--cat', c.color);
+      btn.innerHTML = '<span class="ic">'+c.icon+'</span><span>'+c.label+'</span>';
+      btn.addEventListener('click', function(){ teSelectedCategory = c.key; teRenderCatPicker(); });
+      el.appendChild(btn);
+    });
+  }
+
+  function teRenderFilterChips(){
+    var el = document.getElementById('teFilterChips');
+    el.innerHTML = '';
+    var allChip = document.createElement('button');
+    allChip.type = 'button';
+    allChip.className = 'te-chip'+(teFilterCategory==='all'?' active':'');
+    allChip.textContent = 'ทั้งหมด';
+    allChip.addEventListener('click', function(){ teFilterCategory='all'; teRenderFilterChips(); teRenderTxnList(); });
+    el.appendChild(allChip);
+    TE_CATEGORIES.forEach(function(c){
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'te-chip'+(teFilterCategory===c.key?' active':'');
+      chip.style.setProperty('--cat', c.color);
+      chip.textContent = c.icon+' '+c.label;
+      chip.addEventListener('click', function(){ teFilterCategory=c.key; teRenderFilterChips(); teRenderTxnList(); });
+      el.appendChild(chip);
+    });
+  }
+
+  function teRenderCatGrid(){
+    var grid = document.getElementById('teCatGrid');
+    grid.innerHTML = '';
+    TE_CATEGORIES.forEach(function(c){
+      var spent = teCategorySpent(c.key);
+      var budget = teBudgets[c.key];
+      var card = document.createElement('div');
+      card.className = 'te-cat-card'+(teFilterCategory===c.key?' selected':'');
+      card.style.setProperty('--cat', c.color);
+      var html = '<div class="top-row"><div class="ic-circle">'+c.icon+'</div><div class="name">'+c.label+'</div></div>'+
+        '<div class="amt">'+teFormatBaht(spent)+'</div>';
+      if(budget && budget>0){
+        var pct = Math.min(100,(spent/budget)*100);
+        var over = spent>budget;
+        html += '<div class="te-budget-track"><div class="te-budget-fill'+(over?' over':'')+'" style="width:'+pct.toFixed(0)+'%"></div></div>'+
+          '<div class="te-budget-text"><span>งบ '+teFormatBaht(budget)+'</span><button type="button" class="te-edit-budget" data-key="'+c.key+'">แก้ไข</button></div>';
+      } else {
+        html += '<div class="te-budget-text"><span></span><button type="button" class="te-edit-budget" data-key="'+c.key+'">+ ตั้งงบประมาณ</button></div>';
+      }
+      card.innerHTML = html;
+      card.addEventListener('click', function(ev){
+        if(ev.target.closest('.te-edit-budget')) return;
+        teFilterCategory = (teFilterCategory===c.key) ? 'all' : c.key;
+        teRenderFilterChips(); teRenderCatGrid(); teRenderTxnList();
+      });
+      var editBtn = card.querySelector('.te-edit-budget');
+      if(editBtn){ editBtn.addEventListener('click', function(ev){ ev.stopPropagation(); teStartEditBudget(c.key, card); }); }
+      grid.appendChild(card);
+    });
+  }
+
+  function teStartEditBudget(key, cardEl){
+    var row = cardEl.querySelector('.te-budget-text');
+    var current = teBudgets[key] || '';
+    row.innerHTML = '<input type="number" class="te-budget-input" min="0" step="50" placeholder="งบ/เดือน" value="'+current+'">';
+    var input = row.querySelector('input');
+    input.focus(); input.select();
+    var saved = false;
+    function save(){
+      if(saved) return; saved = true;
+      var val = parseFloat(input.value);
+      var next = Object.assign({}, teBudgets);
+      if(!val || val<=0){ delete next[key]; } else { next[key]=val; }
+      teBudgets = next;
+      teSaveBudgets(next);
+      teRenderCatGrid();
+    }
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', function(ev){
+      if(ev.key==='Enter') save();
+      if(ev.key==='Escape'){ saved=true; teRenderCatGrid(); }
+    });
+  }
+
+  function teRenderChart(){
+    var total = teMonthTotal();
+    document.getElementById('teCcAmt').textContent = teFormatBaht(total);
+    var r=76, cx=100, cy=100, sw=24;
+    var circumference = 2*Math.PI*r;
+    var parts = TE_CATEGORIES.map(function(c){ return { c:c, amt: teCategorySpent(c.key) }; })
+      .filter(function(p){ return p.amt>0; })
+      .sort(function(a,b){ return b.amt-a.amt; });
+    var svgns='http://www.w3.org/2000/svg';
+    var svg = document.getElementById('teDonutSvg');
+    svg.innerHTML = '';
+    var bg = document.createElementNS(svgns,'circle');
+    bg.setAttribute('cx',cx); bg.setAttribute('cy',cy); bg.setAttribute('r',r);
+    bg.setAttribute('fill','none'); bg.setAttribute('stroke','#EAD9B8'); bg.setAttribute('stroke-width',sw);
+    svg.appendChild(bg);
+    if(total>0){
+      var group = document.createElementNS(svgns,'g');
+      group.setAttribute('transform','rotate(-90 '+cx+' '+cy+')');
+      var cumulative = 0;
+      parts.forEach(function(p){
+        var segLen = (p.amt/total)*circumference;
+        var circle = document.createElementNS(svgns,'circle');
+        circle.setAttribute('cx',cx); circle.setAttribute('cy',cy); circle.setAttribute('r',r);
+        circle.setAttribute('fill','none');
+        circle.setAttribute('stroke', p.c.color);
+        circle.setAttribute('stroke-width', sw);
+        circle.setAttribute('stroke-dasharray', segLen.toFixed(2)+' '+(circumference-segLen).toFixed(2));
+        circle.setAttribute('stroke-dashoffset', (-cumulative).toFixed(2));
+        group.appendChild(circle);
+        cumulative += segLen;
+      });
+      svg.appendChild(group);
+    }
+    var legend = document.getElementById('teLegend');
+    legend.innerHTML = '';
+    if(parts.length===0){
+      legend.innerHTML = '<div class="te-legend-row"><span class="lg-name" style="color:var(--ink-soft)">ยังไม่มีรายจ่ายในเดือนนี้</span></div>';
+    } else {
+      parts.forEach(function(p){
+        var pct = total>0 ? (p.amt/total*100) : 0;
+        var row = document.createElement('div');
+        row.className = 'te-legend-row';
+        row.innerHTML = '<span class="dot" style="background:'+p.c.color+'"></span><span class="lg-name">'+p.c.icon+' '+p.c.label+'</span><span class="lg-pct">'+pct.toFixed(0)+'% · '+teFormatBaht(p.amt)+'</span>';
+        legend.appendChild(row);
+      });
+    }
+  }
+
+  function teEscapeHtml(s){ var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+  function teRenderTxnList(){
+    var list = teMonthExpenses().filter(function(e){ return teFilterCategory==='all' || e.category===teFilterCategory; });
+    var listEl = document.getElementById('teTxnList');
+    var emptyEl = document.getElementById('teEmptyState');
+    listEl.innerHTML = '';
+    emptyEl.hidden = list.length>0;
+
+    var groups = {}; var order = [];
+    list.forEach(function(e){
+      if(!groups[e.date]){ groups[e.date]=[]; order.push(e.date); }
+      groups[e.date].push(e);
+    });
+    order.sort(function(a,b){ return a<b?1:-1; });
+
+    order.forEach(function(dateStr){
+      var items = groups[dateStr].slice().sort(function(a,b){ return (b.createdAt||'')<(a.createdAt||'')?-1:1; });
+      var dayTotal = items.reduce(function(s,e){ return s+(Number(e.amount)||0); },0);
+      var groupEl = document.createElement('div');
+      groupEl.className = 'te-date-group';
+      var heading = document.createElement('div');
+      heading.className = 'te-date-heading';
+      heading.innerHTML = '<span>'+teFormatDateThai(dateStr)+'</span><span>'+teFormatBaht(dayTotal)+' บาท</span>';
+      groupEl.appendChild(heading);
+      items.forEach(function(e){
+        var c = TE_CAT_BY_KEY[e.category] || { icon:'❓', label:e.category, color:'#999' };
+        var isConfirm = tePendingDeleteId === e.id;
+        var row = document.createElement('div');
+        row.className = 'te-txn-row';
+        row.innerHTML =
+          '<div class="ic-circle" style="--cat-color:'+c.color+'">'+c.icon+'</div>'+
+          '<div class="mid"><div class="cat-name">'+c.label+'</div>'+(e.note?'<div class="note">'+teEscapeHtml(e.note)+'</div>':'')+'</div>'+
+          '<div class="amount">'+teFormatBaht(e.amount)+'</div>'+
+          '<button type="button" class="del'+(isConfirm?' confirm':'')+'" data-id="'+e.id+'">'+(isConfirm?'ลบ?':'🗑')+'</button>';
+        row.querySelector('.del').addEventListener('click', function(){ teOnDeleteClick(e.id); });
+        groupEl.appendChild(row);
+      });
+      listEl.appendChild(groupEl);
+    });
+  }
+
+  function teOnDeleteClick(id){
+    if(tePendingDeleteId===id){
+      clearTimeout(tePendingDeleteTimer);
+      tePendingDeleteId = null;
+      teExpensesAll = teExpensesAll.filter(function(e){ return e.id!==id; });
+      teSaveExpenses(teExpensesAll);
+      teRenderAll();
+    } else {
+      tePendingDeleteId = id;
+      teRenderTxnList();
+      clearTimeout(tePendingDeleteTimer);
+      tePendingDeleteTimer = setTimeout(function(){ tePendingDeleteId=null; teRenderTxnList(); }, 3000);
+    }
+  }
+
+  function teRenderAll(){
+    teUpdateMonthLabel();
+    teRenderIncomeExpense();
+    teRenderMonthHistory();
+    teRenderCatGrid();
+    teRenderChart();
+    teRenderTxnList();
+  }
+
+  function openTE(){
+    teExpensesAll = teLoadExpenses();
+    teBudgets = teLoadBudgets();
+    teIncomes = teLoadIncomes();
+    teRenderAll();
+    show('te');
+  }
+
+  document.getElementById('tePrevMonth').addEventListener('click', function(){
+    teCurrentMonth = new Date(teCurrentMonth.getFullYear(), teCurrentMonth.getMonth()-1, 1);
+    teRenderAll();
+  });
+  document.getElementById('teNextMonth').addEventListener('click', function(){
+    teCurrentMonth = new Date(teCurrentMonth.getFullYear(), teCurrentMonth.getMonth()+1, 1);
+    teRenderAll();
+  });
+
+  document.getElementById('teAddForm').addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var amountInput = document.getElementById('teAmount');
+    var dateInput = document.getElementById('teDate');
+    var noteInput = document.getElementById('teNote');
+    var submitBtn = document.getElementById('teSubmitBtn');
+    var amount = parseFloat(amountInput.value);
+    if(!amount || amount<=0) return;
+    var date = dateInput.value || teTodayStr();
+    var note = noteInput.value.trim();
+    var record = {
+      id: 'te_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),
+      amount: amount, category: teSelectedCategory, note: note, date: date,
+      createdAt: new Date().toISOString()
+    };
+    teExpensesAll.push(record);
+    teSaveExpenses(teExpensesAll);
+    amountInput.value=''; noteInput.value='';
+    submitBtn.textContent = 'บันทึกแล้ว ✓';
+    setTimeout(function(){ submitBtn.textContent='บันทึกรายจ่าย'; }, 1200);
+    teRenderAll();
+    amountInput.focus();
+  });
+
+  document.getElementById('teExportBtn').addEventListener('click', function(){
+    var payload = { expenses: teExpensesAll, budgets: teBudgets, exportedAt: new Date().toISOString() };
+    var blob = new Blob([JSON.stringify(payload,null,2)], { type:'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'te-backup-'+teTodayStr()+'.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('teImportBtn').addEventListener('click', function(){
+    document.getElementById('teImportFile').click();
+  });
+  document.getElementById('teImportFile').addEventListener('change', function(ev){
+    var file = ev.target.files && ev.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var data = JSON.parse(reader.result);
+        var incoming = Array.isArray(data.expenses) ? data.expenses : [];
+        var existingIds = {};
+        teExpensesAll.forEach(function(e){ existingIds[e.id]=true; });
+        incoming.forEach(function(e){ if(e && e.id && !existingIds[e.id]){ teExpensesAll.push(e); existingIds[e.id]=true; } });
+        teSaveExpenses(teExpensesAll);
+        if(data.budgets && typeof data.budgets==='object'){
+          teBudgets = Object.assign({}, teBudgets, data.budgets);
+          teSaveBudgets(teBudgets);
+        }
+        teRenderAll();
+      }catch(e){ /* ignore malformed backup file */ }
+      ev.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  teExpensesAll = teLoadExpenses();
+  teBudgets = teLoadBudgets();
+  teIncomes = teLoadIncomes();
+  teRenderCatPicker();
+  teRenderFilterChips();
+  document.getElementById('teDate').value = teTodayStr();
 
   renderMap();
 })();
